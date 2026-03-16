@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
+    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 420px; background-color: #ffffff;">
+        <!-- Title -->
+        <h2 class="card-title text-center mb-4 fw-bold" style="color: #6f42c1;">Create an Account</h2>
+
+        {{ form_start(registrationForm) }}
+
+        <!-- Email -->
+        <div class="mb-3">
+            {{ form_label(registrationForm.email) }}
+            {{ form_widget(registrationForm.email, {
+                'attr': {
+                    'class': 'form-control ' ~ (registrationForm.email.vars.errors|length ? 'is-invalid' : '')
+                }
+            }) }}
+            {% for error in registrationForm.email.vars.errors %}
+                <div class="invalid-feedback">{{ error.message }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+            {{ form_label(registrationForm.password.first, 'Password') }}
+            {{ form_widget(registrationForm.password.first, {
+                'attr': {
+                    'class': 'form-control ' ~ (registrationForm.password.first.vars.errors|length ? 'is-invalid' : '')
+                }
+            }) }}
+            {% for error in registrationForm.password.first.vars.errors %}
+                <div class="invalid-feedback">{{ error.message }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-3">
+            {{ form_label(registrationForm.password.second, 'Confirm Password') }}
+            {{ form_widget(registrationForm.password.second, {
+                'attr': {
+                    'class': 'form-control ' ~ (registrationForm.password.second.vars.errors|length ? 'is-invalid' : '')
+                }
+            }) }}
+            {% for error in registrationForm.password.second.vars.errors %}
+                <div class="invalid-feedback">{{ error.message }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit button -->
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-lg fw-bold" style="background: linear-gradient(90deg, #6f42c1 0%, #d63384 100%); border: none; color: #fff;">
+                Register
+            </button>
+        </div>
+
+        {{ form_end(registrationForm) }}
+
+        <!-- Links -->
+        <div class="text-center mt-2">
+            <small class="text-muted">
+                Already have an account? 
+                <a href="{{ path('app_login') }}" class="text-decoration-none fw-semibold" style="color: #6f42c1;">Login here</a>
+            </small>
+        </div>
+        <div class="text-center">
+            <small class="text-muted">
+                Forgot your password? 
+                <a href="{{ path('app_forgot_password') }}" class="text-decoration-none fw-semibold" style="color: #6f42c1;">Reset it</a>
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

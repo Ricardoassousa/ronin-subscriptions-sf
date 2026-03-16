@@ -1,0 +1,25 @@
+App\Entity\User:
+    properties:
+        email:
+            - NotBlank:
+                message: "Email cannot be empty"
+            - Email:
+                message: "Invalid email"
+            - Length:
+                max: 180
+
+        password:
+            - NotBlank:
+                message: "Password cannot be empty"
+            - Length:
+                min: 8
+                max: 255
+
+        roles:
+            - NotBlank:
+                message: "User must have at least one role"
+            - All:
+                constraints:
+                    - Choice:
+                        choices: ["ROLE_USER", "ROLE_ADMIN"]
+                        message: "Invalid role selected"
