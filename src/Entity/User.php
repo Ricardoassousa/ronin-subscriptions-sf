@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\CustomerProfile;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -66,6 +66,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var DateTimeImmutable|null
      */
     private ?DateTimeImmutable $lastLoginAt = null;
+
+    /**
+     * @var CustomerProfile
+     */
+    private $customerProfile;
 
     /**
      * Constructor.
@@ -199,18 +204,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Set the created timestamp.
-     *
-     * @param DateTimeImmutable $createdAt
-     * @return static
-     */
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    /**
      * Get the updated timestamp.
      */
     public function getUpdatedAt(): ?DateTimeImmutable
@@ -247,6 +240,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastLoginAt(?DateTimeImmutable $lastLoginAt): static
     {
         $this->lastLoginAt = $lastLoginAt;
+        return $this;
+    }
+
+    /**
+     * @return CustomerProfile|null
+     */
+    public function getCustomerProfile(): ?CustomerProfile
+    {
+        return $this->customerProfile;
+    }
+
+    /**
+     * @param CustomerProfile|null $customerProfile
+     *
+     * @return $this
+     */
+    public function setCustomerProfile(?CustomerProfile $customerProfile): self
+    {
+        if ($customerProfile->getUser() != $this) {
+            $customerProfile->setUser($this);
+        }
+        $this->customerProfile = $customerProfile;
+
         return $this;
     }
 

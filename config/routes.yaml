@@ -3,5 +3,10 @@ homepage:
    controller: App\Controller\DefaultController::homepage
 
 user_routes:
-    resource: "routes/user.yaml"
-    type: "yaml"
+   resource: "routes/user.yaml"
+   type: "yaml"
+
+admin_routes:
+   resource: "routes/admin.yaml"
+   type: "yaml"
+   prefix: /admin

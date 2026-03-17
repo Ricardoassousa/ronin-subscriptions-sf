@@ -6,7 +6,7 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Create account
 - [x] Login / Logout
 - [x] Edit profile
-- [ ] Role management (admin)
+- [x] Role management (admin)
 - [ ] View subscription history (high-impact, optional)
 
 ### Subscription Plan Management

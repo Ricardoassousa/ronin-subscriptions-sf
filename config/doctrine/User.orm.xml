@@ -15,5 +15,11 @@
         <field name="createdAt" type="datetime_immutable"/>
         <field name="updatedAt" type="datetime_immutable" nullable="true"/>
         <field name="lastLoginAt" type="datetime_immutable" nullable="true"/>
+        <one-to-one field="customerProfile" target-entity="App\Entity\CustomerProfile" mapped-by="user">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-one>
     </entity>
 </doctrine-mapping>

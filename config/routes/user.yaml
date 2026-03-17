@@ -14,6 +14,10 @@ app_profile:
     path: /profile
     controller: App\Controller\ProfileController::editProfile
 
+app_customer_profile:
+    path: /customer-profile
+    controller: App\Controller\CustomerProfileController::edit
+
 app_dashboard:
     path: /profile
     controller: App\Controller\ProfileController::editProfile
