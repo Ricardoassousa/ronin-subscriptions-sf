@@ -1,0 +1,64 @@
+App\Entity\CustomerProfile:
+    properties:
+        firstName:
+            - NotBlank:
+                message: "First name cannot be empty"
+            - Length:
+                max: 50
+                maxMessage: "First name cannot exceed {{ limit }} characters"
+
+        surname:
+            - NotBlank:
+                message: "Surname cannot be empty"
+            - Length:
+                max: 50
+                maxMessage: "Surname cannot exceed {{ limit }} characters"
+
+        phone:
+            - NotBlank:
+                message: "Phone number cannot be empty"
+            - Regex:
+                pattern: '/^\+?\d{6,15}$/'
+                message: "Invalid phone number format (use digits only, with optional +)"
+
+        countryPrefixCode:
+            - NotBlank:
+                message: "Country prefix code cannot be empty"
+            - Regex:
+                pattern: '/^\+\d{1,3}$/'
+                message: "Invalid country code (e.g., +1, +55)"
+
+        primaryAddress:
+            - NotBlank:
+                message: "Primary address cannot be empty"
+            - Length:
+                max: 255
+                maxMessage: "Primary address cannot exceed {{ limit }} characters"
+
+        secondaryAddress:
+            - Length:
+                max: 255
+                maxMessage: "Secondary address cannot exceed {{ limit }} characters"
+
+        city:
+            - NotBlank:
+                message: "City cannot be empty"
+            - Length:
+                max: 100
+                maxMessage: "City cannot exceed {{ limit }} characters"
+
+        country:
+            - NotBlank:
+                message: "Country cannot be empty"
+
+        state:
+            - Length:
+                max: 50
+                maxMessage: "State cannot exceed {{ limit }} characters"
+
+        postalCode:
+            - NotBlank:
+                message: "Postal code cannot be empty"
+            - Length:
+                max: 20
+                maxMessage: "Postal code cannot exceed {{ limit }} characters"

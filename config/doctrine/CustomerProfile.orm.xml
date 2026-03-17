@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Entity\CustomerProfile" table="customer_profile">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="firstName" type="string" column="first_name" length="255"/>
+        <field name="surname" type="string" column="surname" length="255"/>
+        <field name="phone" type="string" column="phone" length="20"/>
+        <field name="countryPrefixCode" type="string" column="country_prefix_code" length="10"/>
+        <field name="primaryAddress" type="string" column="primary_address" length="255"/>
+        <field name="secondaryAddress" type="string" column="secondary_address" length="255" nullable="true"/>
+        <field name="city" type="string" column="city" length="255"/>
+        <field name="state" type="string" column="state" length="255" nullable="true"/>
+        <field name="postalCode" type="string" column="postal_code" length="20"/>
+        <field name="country" type="string" column="country" length="100"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at"/>
+        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="true"/>
+        <one-to-one field="user" target-entity="App\Entity\User" inversed-by="customerProfile">
+            <join-column name="user_id" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-one>
+    </entity>
+</doctrine-mapping>
