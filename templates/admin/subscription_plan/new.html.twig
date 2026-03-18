@@ -1,16 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Customer Profile{% endblock %}
+{% block title %}Create Subscription Plan{% endblock %}
 
 {% block body %}
 <div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
     <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 700px; background-color:#ffffff;">
 
         <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
-            Customer Profile for
-            <span style="color:#6f42c1; font-weight:600; font-style:italic;">
-                {{ user.email ?? '' }}
-            </span>
+            Create Subscription Plan
         </h2>
 
         {% for label, messages in app.flashes %}
@@ -19,7 +16,9 @@
             {% endfor %}
         {% endfor %}
 
-        {{ form_start(form) }}
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        {{ include('admin/subscription_plan/_form.html.twig') }}
 
         {% for field in form %}
             <div class="mb-3">
@@ -47,10 +46,10 @@
                     "
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                Save Changes
+                Create Plan
             </button>
 
-            <a href="{{ path('admin_users_list') }}"
+            <a href="{{ path('subscription_plan_index') }}"
                class="btn fw-semibold w-100 w-md-auto"
                style="
                     background:#ffffff;
@@ -61,7 +60,7 @@
                "
                onmouseover="this.style.background='#6f42c1'; this.style.color='#fff';"
                onmouseout="this.style.background='#ffffff'; this.style.color='#6f42c1';">
-                Back to Users list
+                Back to Plans List
             </a>
         </div>
 

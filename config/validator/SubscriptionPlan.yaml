@@ -1,0 +1,67 @@
+App\Entity\SubscriptionPlan:
+    properties:
+        name:
+            - NotBlank:
+                message: "Plan name cannot be empty"
+            - Length:
+                min: 2
+                max: 100
+                minMessage: "Plan name must have at least {{ limit }} characters"
+                maxMessage: "Plan name cannot exceed {{ limit }} characters"
+
+        description:
+            - Length:
+                max: 1000
+                maxMessage: "Description cannot exceed {{ limit }} characters"
+
+        price:
+            - NotNull:
+                message: "Price is required"
+            - PositiveOrZero:
+                message: "Price must be zero or greater"
+
+        discountPercent:
+            - Range:
+                min: 0
+                max: 100
+                notInRangeMessage: "Discount must be between {{ min }} and {{ max }}"
+
+        currency:
+            - Length:
+                min: 3
+                max: 3
+                exactMessage: "Currency must be a 3-letter code (e.g. EUR, USD)"
+
+        billingInterval:
+            - NotBlank:
+                message: "Billing interval is required"
+            - Choice:
+                choices: [month, year]
+                message: "Invalid billing interval"
+
+        features:
+            - NotNull:
+                message: "Features are required"
+            - Type:
+                type: array
+                message: "Features must be a valid array"
+
+        trialDays:
+            - GreaterThanOrEqual:
+                value: 0
+                message: "Trial days cannot be negative"
+
+        isActive:
+            - Type:
+                type: bool
+                message: "Invalid value for active status"
+
+        isFeatured:
+            - Type:
+                type: bool
+                message: "Invalid value for featured status"
+
+        sortOrder:
+            - GreaterThanOrEqual:
+                value: 0
+                message: "Sort order cannot be negative"
