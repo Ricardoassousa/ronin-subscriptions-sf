@@ -20,21 +20,6 @@
 
         {{ include('admin/subscription_plan/_form.html.twig') }}
 
-        {% for field in form %}
-            <div class="mb-3">
-                {{ form_label(field) }}
-                {{ form_widget(field, {
-                    'attr': {
-                        'class': (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') 
-                                 ~ (field.vars.errors|length ? ' is-invalid' : '')
-                    }
-                }) }}
-                {% for error in field.vars.errors %}
-                    <div class="invalid-feedback">{{ error.message }}</div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-
         <div class="d-grid gap-2 mt-3">
             <button type="submit" class="btn fw-semibold"
                     style="

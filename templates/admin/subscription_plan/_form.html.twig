@@ -1,4 +1,4 @@
-{% for field in ['name', 'description', 'price', 'discountPercent', 'currency', 'billingInterval', 'trialDays', 'sortOrder'] %}
+{% for field in ['name', 'description', 'price', 'discountPercent', 'currency', 'billingInterval', 'features', 'trialDays', 'sortOrder'] %}
     {% set hasError = attribute(form, field).vars.errors|length > 0 %}
     <div class="form-group mb-3">
         {{ form_label(attribute(form, field)) }}

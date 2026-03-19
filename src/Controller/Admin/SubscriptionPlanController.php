@@ -3,10 +3,13 @@
 namespace App\Controller\Admin;
 
 use App\Entity\SubscriptionPlan;
+use App\Entity\SubscriptionPlanSearch;
 use App\Form\SubscriptionPlanType;
+use App\Form\SubscriptionPlanSearchType;
 use App\Service\SlugGenerator;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,25 +31,90 @@ use Throwable;
 class SubscriptionPlanController extends AbstractController
 {
     /**
-     * Displays a list of all subscription plans.
+     * Displays a list of all subscription plans with optional search/filter.
      *
+     * @param Request $request
      * @param EntityManagerInterface $em
+     * @param PaginatorInterface $paginator
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function index(EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator, LoggerInterface $logger): Response
     {
-        $subscriptionPlans = $em->getRepository(SubscriptionPlan::class)->findBy([], ['sortOrder' => 'ASC']);
+        try {
+            $subscriptionPlanSearch = new SubscriptionPlanSearch();
+            $searchForm = $this->createForm(SubscriptionPlanSearchType::class, $subscriptionPlanSearch);
+            $searchForm->handleRequest($request);
+            $searchParams = array();
 
-        $logger->info('Admin accessed subscription plan list.', [
-            'plans_count' => count($subscriptionPlans),
-            'controller' => __CLASS__,
-            'method' => __METHOD__
-        ]);
+            if ($searchForm->isSubmitted() && $searchForm->isValid()) {
 
-        return $this->render('admin/subscription_plan/index.html.twig', [
-            'subscriptionPlans' => $subscriptionPlans
-        ]);
+                $search = $searchForm['search']->getData();
+                $isActive = $searchForm['isActive']->getData();
+                $billingInterval = $searchForm['billingInterval']->getData();
+                $minPrice = $searchForm['minPrice']->getData();
+                $maxPrice = $searchForm['maxPrice']->getData();
+                $isFeatured = $searchForm['isFeatured']->getData();
+                $minTrialDays = $searchForm['minTrialDays']->getData();
+                $maxTrialDays = $searchForm['maxTrialDays']->getData();
+
+
+                if (!empty($search)) {
+                    $searchParams['search'] = $search;
+                }
+                if ($isActive !== null) {
+                    $searchParams['isActive'] = $isActive;
+                }
+                if (!empty($billingInterval)) {
+                    $searchParams['billingInterval'] = $billingInterval;
+                }
+                if ($minPrice !== null) {
+                    $searchParams['minPrice'] = $minPrice;
+                }
+                if ($maxPrice !== null) {
+                    $searchParams['maxPrice'] = $maxPrice;
+                }
+                if ($isFeatured !== null) {
+                    $searchParams['isFeatured'] = $isFeatured;
+                }
+                if ($minTrialDays !== null) {
+                    $searchParams['minTrialDays'] = $minTrialDays;
+                }
+                if ($maxTrialDays !== null) {
+                    $searchParams['maxTrialDays'] = $maxTrialDays;
+                }
+            }
+
+            $query = $em->getRepository(SubscriptionPlan::class)->findSubscriptionPlanByFilterQuery($searchParams);
+
+            $pagination = $paginator->paginate(
+                $query,
+                $request->query->getInt('page', 1),
+                10
+            );
+
+            $logger->info('Admin accessed subscription plan list.', [
+                'plans_count' => count($pagination),
+                'filters' => $searchParams,
+                'controller' => __CLASS__,
+                'method' => __METHOD__
+            ]);
+
+            return $this->render('admin/subscription_plan/index.html.twig', [
+                'pagination' => $pagination,
+                'searchForm' => $searchForm->createView()
+            ]);
+
+        } catch (Throwable $e) {
+            $logger->error('Error accessing subscription plan list.', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            dd($e);
+
+            $this->addFlash('error', 'An error occurred while loading the subscription plans list.');
+        }
+
     }
 
     /**
@@ -75,7 +143,6 @@ class SubscriptionPlanController extends AbstractController
             try {
                 $slug = $slugGenerator->generate($subscriptionPlan->getName(), SubscriptionPlan::class);
                 $subscriptionPlan->setSlug($slug);
-                $subscriptionPlan->setFeatures(['Access to premium dashboard', 'Unlimited projects', 'Priority support']);
                 $em->persist($subscriptionPlan);
                 $em->flush();
 
@@ -181,18 +248,18 @@ class SubscriptionPlanController extends AbstractController
     }
 
     /**
-     * Disables (soft deletes) a subscription plan.
+     * Toggle plan status: enable / disable (soft delete)
      *
      * @param int $id
      * @param EntityManagerInterface $em
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function disable(int $id, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function toggle(int $id, EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($id);
         if (!$subscriptionPlan) {
-            $logger->warning('Subscription plan not found for disable.', [
+            $logger->warning('Subscription plan not found.', [
                 'subscription_plan_id' => $id,
                 'controller' => __CLASS__,
                 'method' => __METHOD__
@@ -200,27 +267,28 @@ class SubscriptionPlanController extends AbstractController
             throw $this->createNotFoundException('Subscription plan not found');
         }
 
-        $subscriptionPlan->setIsActive(false);
+        $subscriptionPlan->setIsActive(!$subscriptionPlan->isActive());
         $subscriptionPlan->setUpdatedAt(new DateTimeImmutable());
 
         try {
             $em->flush();
 
-            $logger->notice('Subscription plan disabled successfully.', [
+            $status = $subscriptionPlan->isActive() ? 'enabled' : 'disabled';
+            $logger->notice("Subscription plan {$status}.", [
                 'subscription_plan_id' => $subscriptionPlan->getId(),
                 'controller' => __CLASS__,
                 'method' => __METHOD__
             ]);
 
-            $this->addFlash('success', 'Subscription plan disabled successfully!');
+            $this->addFlash('success', "Subscription plan {$status} successfully!");
         } catch (Throwable $e) {
-            $logger->error('Failed to disable subscription plan.', [
+            $logger->error('Failed to toggle subscription plan.', [
                 'subscription_plan_id' => $subscriptionPlan->getId(),
                 'exception' => $e,
                 'controller' => __CLASS__,
                 'method' => __METHOD__
             ]);
-            $this->addFlash('error', 'Failed to disable subscription plan.');
+            $this->addFlash('error', 'Failed to update subscription plan status.');
         }
 
         return $this->redirectToRoute('subscription_plan_index');

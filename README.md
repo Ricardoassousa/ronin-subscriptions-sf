@@ -11,8 +11,8 @@ The Subscription Management application implements the core and high-impact feat
 
 ### Subscription Plan Management
 - [x] Create / Edit / Delete subscription plan
-- [ ] Define pricing and plan features
-- [ ] Enable / disable plans (optional)
+- [x] Define pricing and plan features
+- [x] Enable / disable plans (optional)
 
 ### Subscription Management
 - [ ] Subscribe to a plan

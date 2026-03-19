@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\SubscriptionPlan;
+use App\Form\DataTransformer\JsonToArrayTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -11,11 +12,17 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class SubscriptionPlanType extends AbstractType
 {
+    private JsonToArrayTransformer $jsonTransformer;
+
+    public function __construct(JsonToArrayTransformer $jsonTransformer)
+    {
+        $this->jsonTransformer = $jsonTransformer;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -51,6 +58,16 @@ class SubscriptionPlanType extends AbstractType
                     'Yearly' => 'year'
                 ],
             ])
+            ->add('features', TextareaType::class, [
+                'label' => 'Plan Features',
+                'help' => 'Example:
+            {
+                "projects_limit": 10,
+                "api_access": true,
+                "priority_support": true
+            }',
+                'attr' => ['rows' => 10]
+            ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',
                 'required' => false
@@ -67,6 +84,8 @@ class SubscriptionPlanType extends AbstractType
                 'label' => 'Sort Order',
                 'required' => false
             ]);
+
+        $builder->get('features')->addModelTransformer($this->jsonTransformer);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -75,4 +94,5 @@ class SubscriptionPlanType extends AbstractType
             'data_class' => SubscriptionPlan::class,
         ]);
     }
+
 }

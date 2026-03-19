@@ -10,11 +10,83 @@
             Subscription Plans
         </h2>
 
+        {# Flash messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label }}">{{ message }}</div>
             {% endfor %}
         {% endfor %}
+
+        {# ===========================
+           Search / Filter Form
+           =========================== #}
+        <div class="card shadow-sm p-4 mb-4">
+            {{ form_start(searchForm) }}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ form_label(searchForm.search) }}
+                    {{ form_widget(searchForm.search, {'attr': {'class': 'form-control', 'placeholder': 'Name or slug'}}) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form_label(searchForm.billingInterval) }}
+                    {{ form_widget(searchForm.billingInterval, {'attr': {'class': 'form-select'}}) }}
+                </div>
+            </div>
+
+            <div class="row g-3 mt-3">
+                <div class="col-md-3">
+                    {{ form_label(searchForm.minPrice) }}
+                    {{ form_widget(searchForm.minPrice, {'attr': {'class': 'form-control', 'placeholder': 'Min Price'}}) }}
+                </div>
+
+                <div class="col-md-3">
+                    {{ form_label(searchForm.maxPrice) }}
+                    {{ form_widget(searchForm.maxPrice, {'attr': {'class': 'form-control', 'placeholder': 'Max Price'}}) }}
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form_widget(searchForm.isFeatured, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(searchForm.isFeatured, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form_widget(searchForm.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(searchForm.isActive, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-3">
+                <div class="col-md-3">
+                    {{ form_label(searchForm.minTrialDays) }}
+                    {{ form_widget(searchForm.minTrialDays, {'attr': {'class': 'form-control', 'placeholder': 'Min Trial Days'}}) }}
+                </div>
+
+                <div class="col-md-3">
+                    {{ form_label(searchForm.maxTrialDays) }}
+                    {{ form_widget(searchForm.maxTrialDays, {'attr': {'class': 'form-control', 'placeholder': 'Max Trial Days'}}) }}
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <button class="btn fw-semibold px-4"
+                            style="background: linear-gradient(90deg,#0d6efd 0%,#6610f2 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                        <i class="bi bi-search me-1"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            {{ form_end(searchForm) }}
+        </div>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -25,18 +97,19 @@
                         <th>Slug</th>
                         <th>Price</th>
                         <th>Interval</th>
-                        <th>Active</th>
+                        <th>Status</th>
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for subscriptionPlan in subscriptionPlans %}
+                    {% for subscriptionPlan in pagination %}
                         <tr>
                             <td>{{ subscriptionPlan.id }}</td>
                             <td>{{ subscriptionPlan.name }}</td>
                             <td>{{ subscriptionPlan.slug }}</td>
 
+                            {# Price with discount #}
                             <td class="fw-bold">
                                 {% if subscriptionPlan.discountPercent and subscriptionPlan.discountPercent > 0 %}
                                     <div>
@@ -53,8 +126,9 @@
                                 {% endif %}
                             </td>
 
-                            <td>{{ subscriptionPlan.billingInterval }}</td>
+                            <td>{{ subscriptionPlan.billingInterval|capitalize }}</td>
 
+                            {# Active / Disabled badge #}
                             <td>
                                 {% if subscriptionPlan.isActive %}
                                     <span class="badge bg-success">Active</span>
@@ -66,51 +140,46 @@
                             <td>{{ subscriptionPlan.createdAt|date('Y-m-d') }}</td>
 
                             <td class="d-flex flex-wrap gap-2">
+                                {# Show button #}
                                 <a href="{{ path('subscription_plan_show', { id: subscriptionPlan.id, slug: subscriptionPlan.slug }) }}" 
                                    class="btn btn-sm fw-semibold"
-                                   style="
-                                        background: linear-gradient(90deg,#0d6efd 0%,#6610f2 100%);
-                                        color:#fff;
-                                        border:none;
-                                        transition: transform 0.1s, box-shadow 0.2s;
-                                   "
+                                   style="background: linear-gradient(90deg,#0d6efd 0%,#6610f2 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                     Show
                                 </a>
 
+                                {# Edit button #}
                                 <a href="{{ path('subscription_plan_edit', { id: subscriptionPlan.id }) }}" 
                                    class="btn btn-sm fw-semibold"
-                                   style="
-                                        background: linear-gradient(90deg,#ffc107 0%,#fd7e14 100%);
-                                        color:#fff;
-                                        border:none;
-                                        transition: transform 0.1s, box-shadow 0.2s;
-                                   "
+                                   style="background: linear-gradient(90deg,#ffc107 0%,#fd7e14 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                     Edit
                                 </a>
 
-                                {% if subscriptionPlan.isActive %}
-                                    <form action="{{ path('subscription_plan_disable', { id: subscriptionPlan.id }) }}"
-                                          method="post"
-                                          style="display:inline-block">
-                                        <input type="hidden" name="_method" value="PATCH">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('disable' ~ subscriptionPlan.id) }}">
+                                {# Enable / Disable button #}
+                                <form action="{{ path('subscription_plan_toggle', { id: subscriptionPlan.id }) }}"
+                                      method="post"
+                                      style="display:inline-block">
+                                    <input type="hidden" name="_method" value="PATCH">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_status' ~ subscriptionPlan.id) }}">
+                                    {% if subscriptionPlan.isActive %}
                                         <button class="btn btn-sm fw-semibold"
-                                                style="
-                                                    background: linear-gradient(90deg,#dc3545 0%,#b02a37 100%);
-                                                    color:#fff;
-                                                    border:none;
-                                                    transition: transform 0.1s, box-shadow 0.2s;
-                                                "
+                                                style="background: linear-gradient(90deg,#dc3545 0%,#b02a37 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
                                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
                                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                             Disable
                                         </button>
-                                    </form>
-                                {% endif %}
+                                    {% else %}
+                                        <button class="btn btn-sm fw-semibold"
+                                                style="background: linear-gradient(90deg,#28a745 0%,#218838 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
+                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                            Enable
+                                        </button>
+                                    {% endif %}
+                                </form>
                             </td>
                         </tr>
                     {% else %}
@@ -124,16 +193,11 @@
             </table>
         </div>
 
+        {# Create New Plan button #}
         <div class="d-grid gap-2 mt-3">
             <a href="{{ path('subscription_plan_new') }}"
                class="btn fw-semibold"
-               style="
-                    background: linear-gradient(90deg,#198754 0%,#20c997 100%);
-                    color:#fff;
-                    border:none;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    transition: transform 0.1s, box-shadow 0.2s;
-               "
+               style="background: linear-gradient(90deg,#198754 0%,#20c997 100%); color:#fff; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s, box-shadow 0.2s;"
                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
                 Create New Plan
