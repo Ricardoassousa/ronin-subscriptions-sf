@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
+    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 420px; background-color: #ffffff;">
+        <!-- Title -->
+        <h2 class="card-title text-center mb-4 fw-bold" style="color: #6f42c1;">Edit Your Profile</h2>
+
+        {# Flash messages sem o X, se preferir #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {{ form_start(profileForm) }}
+
+        <!-- Email -->
+        <div class="mb-3">
+            {{ form_label(profileForm.email) }}
+            {{ form_widget(profileForm.email, {
+                'attr': {
+                    'class': 'form-control',
+                    'disabled': 'disabled'
+                }
+            }) }}
+            {{ form_errors(profileForm.email) }}
+        </div>
+
+        <!-- New Password -->
+        <div class="mb-3">
+            {{ form_label(profileForm.password.first, 'New Password') }}
+            {{ form_widget(profileForm.password.first, {
+                'attr': {
+                    'class': 'form-control ' ~ (profileForm.password.first.vars.errors|length ? 'is-invalid' : '')
+                }
+            }) }}
+            {% for error in profileForm.password.first.vars.errors %}
+                <div class="invalid-feedback">{{ error.message }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- Confirm New Password -->
+        <div class="mb-3">
+            {{ form_label(profileForm.password.second, 'Confirm New Password') }}
+            {{ form_widget(profileForm.password.second, {
+                'attr': {
+                    'class': 'form-control ' ~ (profileForm.password.second.vars.errors|length ? 'is-invalid' : '')
+                }
+            }) }}
+            {% for error in profileForm.password.second.vars.errors %}
+                <div class="invalid-feedback">{{ error.message }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit button -->
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-lg fw-bold" style="background: linear-gradient(90deg, #6f42c1 0%, #d63384 100%); border: none; color: #fff;">
+                Save Changes
+            </button>
+        </div>
+
+        {{ form_end(profileForm) }}
+
+        <!-- Links -->
+        <div class="text-center mt-2">
+            <small class="text-muted">
+                <a href="{{ path('app_dashboard') }}" class="text-decoration-none fw-semibold" style="color: #6f42c1;">
+                    Back to Dashboard
+                </a>
+            </small>
+        </div>
+        <div class="text-center mt-1">
+            <small class="text-muted">
+                Want to logout? 
+                <a href="{{ path('app_logout') }}" class="text-decoration-none fw-semibold" style="color: #6f42c1;">Click here</a>
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

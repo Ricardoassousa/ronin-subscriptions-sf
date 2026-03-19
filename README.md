@@ -3,16 +3,16 @@
 The Subscription Management application implements the core and high-impact features using Symfony 6.4.
 
 ### User Management
-- [ ] Create account
-- [ ] Login / Logout
-- [ ] Edit profile
-- [ ] Role management (admin)
+- [x] Create account
+- [x] Login / Logout
+- [x] Edit profile
+- [x] Role management (admin)
 - [ ] View subscription history (high-impact, optional)
 
 ### Subscription Plan Management
-- [ ] Create / Edit / Delete subscription plan
-- [ ] Define pricing and plan features
-- [ ] Enable / disable plans (optional)
+- [x] Create / Edit / Delete subscription plan
+- [x] Define pricing and plan features
+- [x] Enable / disable plans (optional)
 
 ### Subscription Management
 - [ ] Subscribe to a plan

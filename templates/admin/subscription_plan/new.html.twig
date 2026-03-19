@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Subscription Plan{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
+    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 700px; background-color:#ffffff;">
+
+        <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
+            Create Subscription Plan
+        </h2>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        {{ include('admin/subscription_plan/_form.html.twig') }}
+
+        <div class="d-grid gap-2 mt-3">
+            <button type="submit" class="btn fw-semibold"
+                    style="
+                        background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%);
+                        border:none;
+                        color:#fff;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        transition: transform 0.1s, box-shadow 0.2s;
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                Create Plan
+            </button>
+
+            <a href="{{ path('subscription_plan_index') }}"
+               class="btn fw-semibold w-100 w-md-auto"
+               style="
+                    background:#ffffff;
+                    color:#6f42c1;
+                    border:2px solid #6f42c1;
+                    border-radius:0.375rem;
+                    transition: all 0.2s;
+               "
+               onmouseover="this.style.background='#6f42c1'; this.style.color='#fff';"
+               onmouseout="this.style.background='#ffffff'; this.style.color='#6f42c1';">
+                Back to Plans List
+            </a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

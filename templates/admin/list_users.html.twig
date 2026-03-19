@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users List{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
+
+    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 900px; background-color:#ffffff;">
+
+        <h2 class="text-center fw-bold mb-4" style="color:#6f42c1;">Users List</h2>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {% if pagination|length > 0 %}
+            <ul class="list-group list-group-flush">
+                {% for user in pagination %}
+                    <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+
+                        <div class="text-break mb-3 mb-md-0">
+                            <strong>{{ user.email }}</strong>
+                            {# {% if user.customerProfile %}
+                                <div class="small text-muted mt-1">
+                                    {{ user.customerProfile.firstName }} {{ user.customerProfile.surname }}
+                                    {% if user.customerProfile.phone %}- {{ user.customerProfile.phone }}{% endif %}
+                                </div>
+                                {% if user.customerProfile.country %}
+                                    <div class="small text-muted">{{ user.customerProfile.city }} {{ user.customerProfile.country }}</div>
+                                {% endif %}
+                            {% endif %} #}
+                            <div class="small text-muted mt-1">Roles: {{ user.roles|join(', ') }}</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('admin_user_edit', { id: user.id }) }}" 
+                               class="btn btn-sm fw-semibold" 
+                               style="background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%); border:none; color:#fff;">
+                               Edit roles
+                            </a>
+                        </div>
+
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="d-flex justify-content-center mt-4">{{ knp_pagination_render(pagination) }}</div>
+        {% else %}
+            <div class="alert alert-light border text-center">No users found.</div>
+        {% endif %}
+
+        <div class="mt-4 text-center">
+            <a href="{{ path('admin_dashboard') }}" 
+               class="btn fw-bold w-100 w-md-auto" 
+               style="background:#6f42c1;color:#fff;border:none;">
+               Back to Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% endblock %}

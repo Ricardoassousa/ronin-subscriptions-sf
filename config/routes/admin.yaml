@@ -1,0 +1,11 @@
+admin_dashboard:
+    path: /
+    controller: App\Controller\Admin\AdminController::dashboard
+
+admin_users_list:
+    path: /users
+    controller: App\Controller\Admin\AdminController::listUsers
+
+admin_user_edit:
+    path: /user/{id}/edit
+    controller: App\Controller\Admin\AdminController::editUserRoles

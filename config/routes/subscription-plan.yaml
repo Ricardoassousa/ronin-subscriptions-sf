@@ -1,0 +1,24 @@
+subscription_plan_index:
+    path: /
+    controller: App\Controller\Admin\SubscriptionPlanController::index
+    methods: [GET, POST]
+
+subscription_plan_new:
+    path: /new
+    controller: App\Controller\Admin\SubscriptionPlanController::new
+    methods: [GET, POST]
+
+subscription_plan_show:
+    path: /{id}-{slug}
+    controller: App\Controller\Admin\SubscriptionPlanController::show
+    methods: [GET]
+
+subscription_plan_edit:
+    path: /{id}/edit
+    controller: App\Controller\Admin\SubscriptionPlanController::edit
+    methods: [GET, POST]
+
+subscription_plan_toggle:
+    path: /{id}/toggle
+    controller: App\Controller\Admin\SubscriptionPlanController::toggle
+    methods: [PATCH]
