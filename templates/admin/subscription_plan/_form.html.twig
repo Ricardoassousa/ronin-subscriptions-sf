@@ -1,0 +1,37 @@
+{% for field in ['name', 'description', 'price', 'discountPercent', 'currency', 'billingInterval', 'features', 'trialDays', 'sortOrder'] %}
+    {% set hasError = attribute(form, field).vars.errors|length > 0 %}
+    <div class="form-group mb-3">
+        {{ form_label(attribute(form, field)) }}
+        {{ form_widget(attribute(form, field), {
+            'attr': {'class': 'form-control ' ~ (hasError ? 'is-invalid' : '')}
+        }) }}
+        {% if hasError %}
+            <div class="invalid-feedback d-block">
+                {{ form_errors(attribute(form, field)) }}
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}
+
+{# Checkboxes separately for proper Bootstrap styling #}
+{% set hasError = form.isActive.vars.errors|length > 0 %}
+<div class="form-group form-check mb-3">
+    {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input ' ~ (hasError ? 'is-invalid' : '')}}) }}
+    {{ form_label(form.isActive, null, {'label_attr': {'class': 'form-check-label'}}) }}
+    {% if hasError %}
+        <div class="invalid-feedback d-block">
+            {{ form_errors(form.isActive) }}
+        </div>
+    {% endif %}
+</div>
+
+{% set hasError = form.isFeatured.vars.errors|length > 0 %}
+<div class="form-group form-check mb-3">
+    {{ form_widget(form.isFeatured, {'attr': {'class': 'form-check-input ' ~ (hasError ? 'is-invalid' : '')}}) }}
+    {{ form_label(form.isFeatured, null, {'label_attr': {'class': 'form-check-label'}}) }}
+    {% if hasError %}
+        <div class="invalid-feedback d-block">
+            {{ form_errors(form.isFeatured) }}
+        </div>
+    {% endif %}
+</div>

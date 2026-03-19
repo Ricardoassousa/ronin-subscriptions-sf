@@ -10,3 +10,8 @@ admin_routes:
    resource: "routes/admin.yaml"
    type: "yaml"
    prefix: /admin
+
+subscription_plan_routes:
+    resource: "routes/subscription-plan.yaml"
+    type: "yaml"
+    prefix: /admin/subscription-plan
