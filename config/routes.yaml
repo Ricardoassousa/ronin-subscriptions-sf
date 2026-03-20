@@ -12,6 +12,11 @@ admin_routes:
    prefix: /admin
 
 subscription_plan_routes:
-    resource: "routes/subscription-plan.yaml"
-    type: "yaml"
-    prefix: /admin/subscription-plan
+   resource: "routes/subscription-plan.yaml"
+   type: "yaml"
+   prefix: /admin/subscription-plan
+
+subscription_routes:
+   resource: "routes/subscription.yaml"
+   type: "yaml"
+   prefix: /subscription
