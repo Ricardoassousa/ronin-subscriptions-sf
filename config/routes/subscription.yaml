@@ -1,14 +1,24 @@
 subscription_index:
     path: /
     controller: App\Controller\SubscriptionController::index
-    methods: [GET, POST]
+    methods: [GET]
 
 subscription_subscribe:
     path: /subscribe/{planId}
     controller: App\Controller\SubscriptionController::subscribe
-    methods: [GET, POST]
+    methods: [POST]
 
 subscription_cancel:
     path: /cancel/{id}
     controller: App\Controller\SubscriptionController::cancel
-    methods: [GET, POST]
+    methods: [POST]
+
+subscription_pause:
+    path: /pause/{id}
+    controller: App\Controller\SubscriptionController::pause
+    methods: [POST]
+
+subscription_resume:
+    path: /resume/{id}
+    controller: App\Controller\SubscriptionController::resume
+    methods: [POST]

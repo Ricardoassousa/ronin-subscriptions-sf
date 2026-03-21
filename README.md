@@ -19,8 +19,8 @@ The Subscription Management application implements the core and high-impact feat
 - [ ] Change subscription plan
 - [x] Cancel subscription
 - [ ] Track subscription status (active, cancelled, expired)
-- [ ] Display next billing date
-- [ ] Pause / Resume subscription (optional, high-impact)
+- [x] Display next billing date
+- [x] Pause / Resume subscription (optional, high-impact)
 
 ### Billing and Payments
 - [ ] Simulate payment processing

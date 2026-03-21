@@ -522,4 +522,25 @@ class SubscriptionPlan
         return $this;
     }
 
+    /**
+     * Returns a human-readable label for the billing interval.
+     *
+     * Maps the internal `billingInterval` value to a friendly string suitable
+     * for display in the UI.
+     *
+     * - 'month' => 'Billed monthly'
+     * - 'year'  => 'Billed yearly'
+     * - any other value => 'Custom billing'
+     *
+     * @return string The label describing the billing frequency
+     */
+    public function getBillingLabel(): string
+    {
+        return match ($this->billingInterval) {
+            'month' => 'Billed monthly',
+            'year' => 'Billed yearly',
+            default => 'Custom billing'
+        };
+    }
+
 }

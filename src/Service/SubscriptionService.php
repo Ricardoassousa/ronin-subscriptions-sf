@@ -186,7 +186,7 @@ class SubscriptionService
             throw new InvalidArgumentException('Subscription cannot be null.');
         }
 
-        if ($subscription->getStatus() !== SubscriptionStatus::ACTIVE) {
+        if ($subscription->getStatus() !== SubscriptionStatus::ACTIVE->value) {
             $this->logger->warning('Cannot pause: subscription not active', [
                 'subscription_id' => $subscription->getId(),
                 'current_status' => $subscription->getStatus()
@@ -194,7 +194,7 @@ class SubscriptionService
             throw new LogicException('Only active subscriptions can be paused.');
         }
 
-        $subscription->setStatus(SubscriptionStatus::PAUSED);
+        $subscription->setStatus(SubscriptionStatus::PAUSED->value);
         $subscription->setPausedAt(new DateTimeImmutable());
 
         $this->em->flush();
@@ -222,7 +222,7 @@ class SubscriptionService
             throw new InvalidArgumentException('Subscription cannot be null.');
         }
 
-        if ($subscription->getStatus() !== SubscriptionStatus::PAUSED) {
+        if ($subscription->getStatus() !== SubscriptionStatus::PAUSED->value) {
             $this->logger->warning('Cannot resume: subscription not paused', [
                 'subscription_id' => $subscription->getId(),
                 'current_status' => $subscription->getStatus()
@@ -241,7 +241,7 @@ class SubscriptionService
             }
         }
 
-        $subscription->setStatus(SubscriptionStatus::ACTIVE);
+        $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
         $subscription->setPausedAt(null);
 
         $this->em->flush();
