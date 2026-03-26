@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use App\Repository\SubscriptionPlanRepository;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -122,6 +124,14 @@ class SubscriptionPlan
     private DateTimeImmutable $updatedAt;
 
     /**
+     * Collection of subscriptions associated with this plan.
+     *
+     * @var Collection<int, Subscription>
+     */
+    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'subscriptionPlan')]
+    private Collection $subscriptions;
+
+    /**
      * Constructor.
      *
      * Initializes default values for timestamps.
@@ -129,6 +139,7 @@ class SubscriptionPlan
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
+        $this->subscriptions = new ArrayCollection();
     }
 
     /**
@@ -461,6 +472,75 @@ class SubscriptionPlan
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    /**
+     * Get all subscriptions associated with this plan.
+     *
+     * @return Collection<int, Subscription> Returns a Doctrine Collection of Subscription entities
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    /**
+     * Add a subscription to this plan.
+     *
+     * Ensures that the owning side of the relation is updated as well.
+     *
+     * @param Subscription $subscription The subscription to add
+     * @return static Returns the current SubscriptionPlan instance (for method chaining)
+     */
+    public function addSubscription(Subscription $subscription): static
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions->add($subscription);
+            $subscription->setSubscriptionPlan($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a subscription from this plan.
+     *
+     * Also sets the owning side (Subscription.subscriptionPlan) to null if it was pointing to this plan.
+     *
+     * @param Subscription $subscription The subscription to remove
+     * @return static Returns the current SubscriptionPlan instance (for method chaining)
+     */
+    public function removeSubscription(Subscription $subscription): static
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getSubscriptionPlan() === $this) {
+                $subscription->setSubscriptionPlan(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns a human-readable label for the billing interval.
+     *
+     * Maps the internal `billingInterval` value to a friendly string suitable
+     * for display in the UI.
+     *
+     * - 'month' => 'Billed monthly'
+     * - 'year'  => 'Billed yearly'
+     * - any other value => 'Custom billing'
+     *
+     * @return string The label describing the billing frequency
+     */
+    public function getBillingLabel(): string
+    {
+        return match ($this->billingInterval) {
+            'month' => 'Billed monthly',
+            'year' => 'Billed yearly',
+            default => 'Custom billing'
+        };
     }
 
 }

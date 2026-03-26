@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Entity\Subscription" table="subscription" repository-class="App\Repository\SubscriptionRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="priceSnapshot" type="decimal" column="price_snapshot" precision="10" scale="2" nullable="false"/>
+        <field name="currencySnapshot" type="string" column="currency_snapshot" length="3" nullable="true"/>
+        <field name="billingIntervalSnapshot" type="string" column="billing_interval_snapshot" length="10" nullable="false"/>
+        <field name="discountPercentSnapshot" type="decimal" column="discount_percent_snapshot" precision="5" scale="2" nullable="true"/>
+        <field name="status" type="string" column="status" length="20" nullable="false"/>
+        <field name="startedAt" type="datetime_immutable" column="started_at" nullable="false"/>
+        <field name="endsAt" type="datetime_immutable" column="ends_at" nullable="true"/>
+        <field name="nextBillingAt" type="datetime_immutable" column="next_billing_at" nullable="true"/>
+        <field name="cancelledAt" type="datetime_immutable" column="cancelled_at" nullable="true"/>
+        <field name="pausedAt" type="datetime_immutable" column="paused_at" nullable="true"/>
+        <field name="trialEndsAt" type="datetime_immutable" column="trial_ends_at" nullable="true"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="true"/>
+        <many-to-one field="user" target-entity="App\Entity\User" inversed-by="subscriptions">
+            <join-column name="user_id" referenced-column-name="id" nullable="false"/>
+        </many-to-one>
+        <many-to-one field="subscriptionPlan" target-entity="App\Entity\SubscriptionPlan" inversed-by="subscriptions">
+            <join-column name="subscription_plan_id" referenced-column-name="id" nullable="false"/>
+        </many-to-one>
+    </entity>
+</doctrine-mapping>
