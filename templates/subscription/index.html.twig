@@ -19,18 +19,14 @@
 
         <div class="row g-4">
             {% for subscriptionPlan in pagination %}
+                {% set isCurrent = currentSubscription and currentSubscription.subscriptionPlan and currentSubscription.subscriptionPlan.id == subscriptionPlan.id %}
+
                 <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div class="card h-100 shadow-sm rounded-4
-                        {% if currentSubscription and currentSubscription.subscriptionPlan and currentSubscription.subscriptionPlan.id == subscriptionPlan.id %}
-                            border border-primary
-                        {% endif %}">
+                    <div class="card h-100 shadow-sm rounded-4 {% if isCurrent %}border border-primary{% endif %}">
                         <div class="card-body d-flex flex-column">
 
                             <h5 class="card-title fw-bold">{{ subscriptionPlan.name }}</h5>
-
-                            <p class="text-muted small mb-2">
-                                {{ subscriptionPlan.description ?? 'No description available' }}
-                            </p>
+                            <p class="text-muted small mb-2">{{ subscriptionPlan.description ?? 'No description available' }}</p>
 
                             <p class="fw-bold mb-2">
                                 {% if subscriptionPlan.discountPercent and subscriptionPlan.discountPercent > 0 %}
@@ -45,69 +41,59 @@
                                 {% endif %}
                             </p>
 
-                            <p class="small mb-2">
-                                {{ subscriptionPlan.billingLabel }}
-                            </p>
-
-                            {% if loop.first %}
-                                <span class="badge bg-success mb-2">Most Popular</span>
-                            {% endif %}
+                            <p class="small mb-2">{{ subscriptionPlan.billingLabel }}</p>
+                            {% if loop.first %}<span class="badge bg-success mb-2">Most Popular</span>{% endif %}
 
                             <div class="mt-auto d-grid gap-2">
 
-                                {% if currentSubscription and currentSubscription.subscriptionPlan and currentSubscription.subscriptionPlan.id == subscriptionPlan.id %}
-
+                                {# ---------------- Current Plan ---------------- #}
+                                {% if isCurrent %}
                                     {% if currentSubscription.status == 'active' %}
-                                        <button class="btn btn-secondary w-100" disabled>
-                                            Current Plan
-                                        </button>
-
+                                        <button class="btn btn-secondary w-100" disabled>Current Plan</button>
                                         {% if currentSubscription.nextBillingAt %}
-                                            <small class="text-muted text-center">
-                                                Next billing: {{ currentSubscription.nextBillingAt|date('d/m/Y') }}
-                                            </small>
+                                            <small class="text-muted text-center">Next billing: {{ currentSubscription.nextBillingAt|date('d/m/Y') }}</small>
                                         {% endif %}
 
-                                        {# Pause Form #}
-                                        <form action="{{ path('subscription_pause', { id: currentSubscription.id }) }}" method="post" class="d-grid gap-2">
+                                        <form action="{{ path('subscription_pause', { id: currentSubscription.id }) }}" method="post">
                                             <input type="hidden" name="_token" value="{{ csrf_token('pause' ~ currentSubscription.id) }}">
-                                            <button type="submit" class="btn btn-warning w-100">Pause Subscription</button>
+                                            <button class="btn btn-warning w-100">Pause Subscription</button>
                                         </form>
 
-                                        {# Cancel Form #}
-                                        <form action="{{ path('subscription_cancel', { id: currentSubscription.id }) }}" method="post" class="d-grid gap-2">
+                                        <form action="{{ path('subscription_cancel', { id: currentSubscription.id }) }}" method="post">
                                             <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ currentSubscription.id) }}">
-                                            <button type="submit" class="btn btn-outline-danger w-100">Cancel Subscription</button>
+                                            <button class="btn btn-outline-danger w-100">Cancel Subscription</button>
                                         </form>
 
                                     {% elseif currentSubscription.status == 'paused' %}
-                                        <button class="btn btn-warning w-100" disabled>
-                                            Paused
-                                        </button>
+                                        <button class="btn btn-warning w-100" disabled>Paused</button>
 
-                                        {# Resume Form #}
-                                        <form action="{{ path('subscription_resume', { id: currentSubscription.id }) }}" method="post" class="d-grid gap-2">
+                                        <form action="{{ path('subscription_resume', { id: currentSubscription.id }) }}" method="post">
                                             <input type="hidden" name="_token" value="{{ csrf_token('resume' ~ currentSubscription.id) }}">
-                                            <button type="submit" class="btn btn-success w-100">Resume Subscription</button>
+                                            <button class="btn btn-success w-100">Resume Subscription</button>
                                         </form>
 
-                                        {# Cancel Form #}
-                                        <form action="{{ path('subscription_cancel', { id: currentSubscription.id }) }}" method="post" class="d-grid gap-2">
+                                        <form action="{{ path('subscription_cancel', { id: currentSubscription.id }) }}" method="post">
                                             <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ currentSubscription.id) }}">
-                                            <button type="submit" class="btn btn-outline-danger w-100">Cancel Subscription</button>
+                                            <button class="btn btn-outline-danger w-100">Cancel Subscription</button>
                                         </form>
 
                                     {% elseif currentSubscription.status == 'cancelled' %}
-                                        <button class="btn btn-secondary w-100" disabled>
-                                            Cancelled
-                                        </button>
+                                        <button class="btn btn-secondary w-100" disabled>Cancelled</button>
                                     {% endif %}
 
                                 {% else %}
-                                    <a href="{{ path('subscription_subscribe', { planId: subscriptionPlan.id }) }}"
-                                       class="btn btn-primary w-100">
-                                        Subscribe
-                                    </a>
+                                    {# ---------------- Subscribe / Switch Plan ---------------- #}
+                                    {% if currentSubscription %}
+                                        <form action="{{ path('subscription_change_plan', { id: currentSubscription.id, planId: subscriptionPlan.id }) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('change_plan' ~ currentSubscription.id) }}">
+                                            <button class="btn btn-outline-primary w-100">Switch Plan</button>
+                                        </form>
+                                    {% else %}
+                                        <form action="{{ path('subscription_subscribe', { planId: subscriptionPlan.id }) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('subscribe' ~ subscriptionPlan.id) }}">
+                                            <button class="btn btn-primary w-100">Subscribe</button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
 
                             </div>
@@ -116,14 +102,11 @@
                 </div>
             {% else %}
                 <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        No subscription plans available.
-                    </div>
+                    <div class="alert alert-info text-center">No subscription plans available.</div>
                 </div>
             {% endfor %}
         </div>
 
-        {# Pagination #}
         <div class="d-flex justify-content-center mt-4">
             {{ knp_pagination_render(pagination) }}
         </div>

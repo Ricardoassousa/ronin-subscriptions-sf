@@ -8,6 +8,11 @@ subscription_subscribe:
     controller: App\Controller\SubscriptionController::subscribe
     methods: [POST]
 
+subscription_change_plan:
+    path: /subscription/{id}/change/{planId}
+    controller: App\Controller\SubscriptionController::changePlan
+    methods: [POST]
+
 subscription_cancel:
     path: /cancel/{id}
     controller: App\Controller\SubscriptionController::cancel

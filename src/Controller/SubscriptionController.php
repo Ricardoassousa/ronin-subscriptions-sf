@@ -42,7 +42,11 @@ final class SubscriptionController extends AbstractController
         );
 
         $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $this->getUser()], ['startedAt' => 'DESC']);
-        $query = $em->getRepository(SubscriptionPlan::class)->findBy(['isActive' => true]);
+$query = $em->getRepository(SubscriptionPlan::class)
+    ->createQueryBuilder('p')
+    ->where('p.isActive = :active')
+    ->setParameter('active', true)
+    ->orderBy('p.id', 'ASC'); // ou outro critério
 
         $pagination = $paginator->paginate(
             $query,
@@ -114,6 +118,102 @@ final class SubscriptionController extends AbstractController
                 ]
             );
             $this->addFlash('error', 'Failed to subscribe. Please try again.');
+        }
+
+        return $this->redirectToRoute('subscription_index');
+    }
+
+    /**
+     * Change the subscription plan for a given subscription.
+     *
+     * Ensures that:
+     * - The user is authenticated
+     * - The subscription exists and belongs to the current user
+     * - The new plan exists
+     *
+     * Delegates the business logic to the SubscriptionService.
+     *
+     * @param int $id The subscription ID
+     * @param int $planId The new subscription plan ID
+     * @param EntityManagerInterface $em
+     * @param SubscriptionService $subscriptionService
+     * @param LoggerInterface $logger
+     * @return Response
+     */
+    public function changePlan(int $id, int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            $logger->warning(
+                'Unauthorized plan change attempt',
+                [
+                    'subscription_id' => $id,
+                    'plan_id' => $planId
+                ]
+            );
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        $subscription = $em->getRepository(Subscription::class)->find($id);
+
+        if (
+            !$subscription
+            || $subscription->getUser()?->getId() !== $user->getId()
+        ) {
+            $logger->warning(
+                'Subscription not found or does not belong to user',
+                [
+                    'user_id' => $user->getId(),
+                    'subscription_id' => $id
+                ]
+            );
+
+            $this->addFlash('error', 'Subscription not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        $newPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
+
+        if (!$newPlan) {
+            $logger->error(
+                'Subscription plan not found',
+                [
+                    'plan_id' => $planId
+                ]
+            );
+
+            $this->addFlash('error', 'Subscription plan not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        try {
+            $subscriptionService->changePlan($subscription, $newPlan);
+
+            $logger->info(
+                'Subscription plan changed successfully',
+                [
+                    'user_id' => $user->getId(),
+                    'subscription_id' => $subscription->getId(),
+                    'new_plan_id' => $newPlan->getId()
+                ]
+            );
+
+            $this->addFlash('success', 'Subscription plan updated successfully!');
+
+        } catch (Throwable $e) {
+            $logger->error(
+                'Failed to change subscription plan',
+                [
+                    'user_id' => $user->getId(),
+                    'subscription_id' => $subscription->getId(),
+                    'plan_id' => $planId,
+                    'exception' => $e->getMessage()
+                ]
+            );
+
+            $this->addFlash('error', 'Failed to change subscription plan. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');

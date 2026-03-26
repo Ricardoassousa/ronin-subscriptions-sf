@@ -101,36 +101,49 @@ class SubscriptionService
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function changePlan(Subscription $subscription, SubscriptionPlan $newPlan): void
+    public function changePlan(Subscription $subscription, SubscriptionPlan $newPlan): Subscription
     {
         if (!$subscription) {
-            $this->logger->error('Cannot change subscription plan: subscription is null.');
             throw new InvalidArgumentException('Subscription cannot be null.');
         }
 
         if (!$newPlan) {
-            $this->logger->error('Cannot change subscription plan: new plan is null.');
             throw new InvalidArgumentException('New subscription plan cannot be null.');
         }
 
-        if ($subscription->getStatus() === SubscriptionStatus::CANCELLED) {
-            $this->logger->warning('Cannot change subscription plan: subscription is cancelled', [
-                'subscription_id' => $subscription->getId()
-            ]);
+        if ($subscription->getStatus() === SubscriptionStatus::CANCELLED->value) {
             throw new LogicException('Cannot change plan of a cancelled subscription.');
         }
 
-        $oldPlanId = $subscription->getSubscriptionPlan()?->getId();
-        $subscription->setSubscriptionPlan($newPlan);
-        $subscription->setNextBillingAt(new DateTimeImmutable('+1 month'));
+        // Cancel the current subscription
+        $subscription->setStatus(SubscriptionStatus::CANCELLED->value);
+        $subscription->setEndsAt(new DateTimeImmutable());
+        $subscription->setCancelledAt(new DateTimeImmutable());
 
+        // Create a new subscription with the new plan
+        $newSubscription = new Subscription();
+        $newSubscription->setUser($subscription->getUser());
+        $newSubscription->setSubscriptionPlan($newPlan);
+        $newSubscription->setPriceSnapshot($newPlan->getPrice());
+        $newSubscription->setCurrencySnapshot($newPlan->getCurrency());
+        $newSubscription->setBillingIntervalSnapshot($newPlan->getBillingInterval());
+        $newSubscription->setDiscountPercentSnapshot($newPlan->getDiscountPercent());
+        $newSubscription->setStatus(SubscriptionStatus::ACTIVE->value);
+        $newSubscription->setStartedAt(new DateTimeImmutable());
+        $newSubscription->setNextBillingAt(new DateTimeImmutable('+1 month'));
+
+        $this->em->persist($subscription);
+        $this->em->persist($newSubscription);
         $this->em->flush();
 
         $this->logger->info('Subscription plan changed', [
-            'subscription_id' => $subscription->getId(),
-            'old_plan_id' => $oldPlanId,
+            'old_subscription_id' => $subscription->getId(),
+            'new_subscription_id' => $newSubscription->getId(),
+            'old_plan_id' => $subscription->getSubscriptionPlan()?->getId(),
             'new_plan_id' => $newPlan->getId()
         ]);
+
+        return $newSubscription;
     }
 
     /**
