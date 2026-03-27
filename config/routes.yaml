@@ -20,3 +20,8 @@ subscription_routes:
    resource: "routes/subscription.yaml"
    type: "yaml"
    prefix: /subscription
+
+payment_routes:
+   resource: "routes/payment.yaml"
+   type: "yaml"
+   prefix: /api/payments
