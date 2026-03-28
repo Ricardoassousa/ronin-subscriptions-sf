@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Entity\Invoice" table="invoice" repository-class="App\Repository\InvoiceRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="invoiceNumber" type="string" column="invoice_number" length="50" unique="true" nullable="false"/>
+        <field name="amount" type="decimal" column="amount" precision="10" scale="2" nullable="false"/>
+        <field name="status" type="string" column="status" length="20" nullable="false"/>
+        <field name="description" type="text" column="description" nullable="true"/>
+        <field name="currency" type="string" column="currency" length="3" nullable="true"/>
+        <field name="tax" type="decimal" column="tax" precision="10" scale="2" nullable="true"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+        <field name="dueDate" type="datetime_immutable" column="due_date" nullable="true"/>
+        <one-to-one field="payment" target-entity="App\Entity\Payment" inversed-by="invoice">
+            <join-column name="payment_id" referenced-column-name="id" nullable="false" on-delete="CASCADE"/>
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-one>
+    </entity>
+</doctrine-mapping>

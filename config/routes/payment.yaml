@@ -1,4 +1,9 @@
-api_payment_process:
-    path: /process
-    controller: App\Controller\PaymentController::process
-    methods: [POST]
+payments_history:
+    path: /history
+    controller: App\Controller\PaymentController::index
+    methods: [GET]
+
+payment_checkout:
+    path: /checkout/{paymentId}
+    controller: App\Controller\PaymentController::checkout
+    methods: [GET, POST]

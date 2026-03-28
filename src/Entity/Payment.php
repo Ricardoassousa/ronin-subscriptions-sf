@@ -110,6 +110,13 @@ class Payment
     private ?Subscription $subscription = null;
 
     /**
+     * The invoice associated with this payment.
+     *
+     * @var Subscription|null
+     */
+    private ?Invoice $invoice = null;
+
+    /**
      * Constructor.
      *
      * Initializes creation timestamp.
@@ -391,6 +398,23 @@ class Payment
     public function setSubscription(?Subscription $subscription): static
     {
         $this->subscription = $subscription;
+        return $this;
+    }
+
+    public function getInvoice(): ?Invoice
+    {
+        return $this->invoice;
+    }
+
+    public function setInvoice(Invoice $invoice): static
+    {
+        // set the owning side of the relation if necessary
+        if ($invoice->getPayment() !== $this) {
+            $invoice->setPayment($this);
+        }
+
+        $this->invoice = $invoice;
+
         return $this;
     }
 

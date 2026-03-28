@@ -1,0 +1,4 @@
+api_payment_process:
+    path: /process
+    controller: App\Controller\PaymentController::process
+    methods: [POST]

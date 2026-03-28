@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
+    <div class="w-100" style="max-width: 1200px;">
+
+        <h2 class="text-center mb-5 fw-bold" style="color:#000000; font-size:1.75rem;">
+            Payment History
+        </h2>
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} mb-3 text-center">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Payment Method</th>
+                        <th scope="col">Transaction ID</th>
+                        <th scope="col">Invoice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in pagination %}
+                        <tr>
+                            <td class="text-center">{{ payment.createdAt|date('d/m/Y H:i') }}</td>
+                            <td class="text-end">{{ payment.amount|number_format(2, '.', ',') }} {{ payment.currency }}</td>
+                            <td class="text-center">
+                                {% if payment.status == 'success' %}
+                                    <span class="badge bg-success">{{ payment.status|capitalize }}</span>
+                                {% elseif payment.status == 'failed' %}
+                                    <span class="badge bg-danger">{{ payment.status|capitalize }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ payment.status|capitalize }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ payment.paymentMethod ?? '-' }}</td>
+                            <td class="text-center">{{ payment.transactionId ?? '-' }}</td>
+                            <td class="text-center">
+                                {% if payment.invoice %}
+                                    <a href="{{ path('payment_checkout', { paymentId: payment.invoice.id }) }}" class="btn btn-sm btn-outline-primary">View Invoice</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No payments found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Pagination links #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

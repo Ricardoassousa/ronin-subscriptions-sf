@@ -5,18 +5,10 @@ namespace App\Service;
 use App\Enum\PaymentStatus;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Throwable;
 
 class PaymentService
 {
-    /**
-     * @var HttpClientInterface
-     */
-    private $httpClient;
-
     /**
      * @var LoggerInterface
      */
@@ -25,12 +17,10 @@ class PaymentService
     /**
      * PaymentService constructor.
      *
-     * @param HttpClientInterface $httpClient
      * @param LoggerInterface $logger
      */
-    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->httpClient = $httpClient;
         $this->logger = $logger;
     }
 
@@ -42,29 +32,36 @@ class PaymentService
      */
     public function process(float $amount): array
     {
-        try {
-            $response = $this->httpClient->request('POST', '/api/payments/process', [
-                'json' => ['amount' => $amount],
+        if ($amount <= 0) {
+            $this->logger->warning('Attempted to process invalid payment amount.', [
+                'amount' => $amount
             ]);
 
-            $data = $response->toArray();
+            return [
+                'status' => PaymentStatus::FAILED->value,
+                'reason' => 'Invalid amount'
+            ];
+        }
 
-            // Ensure we return a valid PaymentStatus
-            $status = match($data['status'] ?? '') {
-                PaymentStatus::SUCCESS->value => PaymentStatus::SUCCESS->value,
-                PaymentStatus::FAILED->value  => PaymentStatus::FAILED->value,
-                default => PaymentStatus::FAILED->value,
-            };
+        try {
+            // Simulate processing payment
+            $transactionId = 'txn_' . uniqid();
+
+            $this->logger->info(
+                'Payment processed successfully.',
+                [
+                    'amount' => $amount,
+                    'transaction_id' => $transactionId
+                ]
+            );
 
             return [
-                'status' => $status,
-                'transaction_id' => $data['transaction_id'] ?? null,
-                'reason' => $data['reason'] ?? null,
+                'status' => PaymentStatus::SUCCESS->value,
+                'transaction_id' => $transactionId
             ];
-        } catch (ClientExceptionInterface | ServerExceptionInterface | TransportExceptionInterface $e) {
-            // Log the error
+        } catch (Throwable $e) {
             $this->logger->error(
-                'PaymentService error during processing',
+                'Payment processing failed.',
                 [
                     'amount' => $amount,
                     'exception' => $e

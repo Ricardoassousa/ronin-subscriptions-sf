@@ -25,8 +25,8 @@ The Subscription Management application implements the core and high-impact feat
 ### Billing and Payments
 - [x] Simulate payment processing
 - [x] Record payments
-- [ ] Generate invoices (simulated)
-- [ ] View payment history (optional, high-impact)
+- [x] Generate invoices (simulated)
+- [x] View payment history (optional, high-impact)
 - [ ] Download invoices (PDF, optional, high-impact)
 
 ### Admin Dashboard
