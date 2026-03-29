@@ -1,0 +1,4 @@
+invoice_download:
+    path: /download/{invoiceId}
+    controller: App\Controller\InvoiceController::downloadInvoicePdf
+    methods: [GET]

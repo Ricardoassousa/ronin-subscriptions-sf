@@ -2,11 +2,14 @@
 
 namespace App\Entity;
 
+use App\Entity\Payment;
 use App\Entity\SubscriptionPlan;
 use App\Entity\User;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Represents a subscription of a user to a subscription plan.
@@ -130,6 +133,11 @@ class Subscription
     private ?SubscriptionPlan $subscriptionPlan = null;
 
     /**
+     * @var Collection<int, Payment>
+     */
+    private Collection $payments;
+
+    /**
      * Constructor.
      *
      * Initializes timestamps and default status.
@@ -137,8 +145,8 @@ class Subscription
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
-        $this->updatedAt = new DateTimeImmutable();
         $this->status = SubscriptionStatus::ACTIVE->value;
+        $this->payments = new ArrayCollection();
     }
 
     /**
@@ -581,6 +589,36 @@ class Subscription
     public function setSubscriptionPlan(?SubscriptionPlan $subscriptionPlan): static
     {
         $this->subscriptionPlan = $subscriptionPlan;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setSubscription($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getSubscription() === $this) {
+                $payment->setSubscription(null);
+            }
+        }
+
         return $this;
     }
 

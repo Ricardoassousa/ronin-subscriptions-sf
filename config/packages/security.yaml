@@ -47,6 +47,8 @@ security:
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/customer-profile, roles: ROLE_USER }
         - { path: ^/subscription, roles: ROLE_USER }
+        - { path: ^/payments, roles: ROLE_USER }
+        - { path: ^/invoices, roles: ROLE_USER }
 
         # Backoffice (admin)
         - { path: ^/admin, roles: ROLE_ADMIN }

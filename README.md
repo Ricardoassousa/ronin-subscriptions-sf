@@ -23,11 +23,11 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Pause / Resume subscription (optional, high-impact)
 
 ### Billing and Payments
-- [ ] Simulate payment processing
-- [ ] Record payments
-- [ ] Generate invoices (simulated)
-- [ ] View payment history (optional, high-impact)
-- [ ] Download invoices (PDF, optional, high-impact)
+- [x] Simulate payment processing
+- [x] Record payments
+- [x] Generate invoices (simulated)
+- [x] View payment history (optional, high-impact)
+- [x] Download invoices (PDF, optional, high-impact)
 
 ### Admin Dashboard
 - [ ] Dashboard overview

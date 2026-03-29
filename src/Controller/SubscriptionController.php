@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Payment;
 use App\Entity\Subscription;
 use App\Entity\SubscriptionPlan;
+use App\Enum\PaymentStatus;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
 use App\Service\SubscriptionService;
@@ -42,11 +44,11 @@ final class SubscriptionController extends AbstractController
         );
 
         $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $this->getUser()], ['startedAt' => 'DESC']);
-$query = $em->getRepository(SubscriptionPlan::class)
-    ->createQueryBuilder('p')
-    ->where('p.isActive = :active')
-    ->setParameter('active', true)
-    ->orderBy('p.id', 'ASC'); // ou outro critério
+        $query = $em->getRepository(SubscriptionPlan::class)
+                    ->createQueryBuilder('p')
+                    ->where('p.isActive = :active')
+                    ->setParameter('active', true)
+                    ->orderBy('p.id', 'ASC');
 
         $pagination = $paginator->paginate(
             $query,
@@ -107,7 +109,21 @@ $query = $em->getRepository(SubscriptionPlan::class)
                     'plan_id' => $planId,
                 ]
             );
+
+            // After subscription is created
+            $payment = new Payment();
+            $payment->setUser($user);
+            $payment->setSubscription($subscription);
+            $payment->setAmount($subscriptionPlan->getPrice());
+            $payment->setCurrency($subscriptionPlan->getCurrency() ?? 'USD');
+            $payment->setStatus(PaymentStatus::PENDING->value);
+            $em->persist($payment);
+            $em->flush();
+
             $this->addFlash('success', 'You have successfully subscribed!');
+            return $this->redirectToRoute('payment_checkout', [
+                'paymentId' => $payment->getId()
+            ]);
 
         } catch (Throwable $e) {
             $logger->error(

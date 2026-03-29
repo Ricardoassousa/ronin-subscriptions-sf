@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\CustomerProfile;
+use App\Entity\Payment;
 use App\Entity\Subscription;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
@@ -78,8 +79,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Subscription>
      */
-    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'userx')]
     private Collection $subscriptions;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    private Collection $payments;
 
     /**
      * Constructor.
@@ -91,6 +96,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = ['ROLE_USER'];
         $this->createdAt = new DateTimeImmutable();
         $this->subscriptions = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     /**
@@ -300,6 +306,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($subscription->getUser() === $this) {
                 $subscription->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getUser() === $this) {
+                $payment->setUser(null);
             }
         }
 

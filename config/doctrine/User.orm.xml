@@ -22,5 +22,6 @@
             </cascade>
         </one-to-one>
         <one-to-many field="subscriptions" target-entity="App\Entity\Subscription" mapped-by="user"/>
+        <one-to-many field="payments" target-entity="App\Entity\Payment" mapped-by="user"/>
     </entity>
 </doctrine-mapping>
