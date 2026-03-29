@@ -19,23 +19,6 @@ use Throwable;
 
 class PaymentController extends AbstractController
 {
-    private EntityManagerInterface $em;
-    private PaymentService $paymentService;
-    private InvoiceService $invoiceService;
-    private LoggerInterface $logger;
-
-    public function __construct(
-        EntityManagerInterface $em,
-        PaymentService $paymentService,
-        InvoiceService $invoiceService,
-        LoggerInterface $logger
-    ) {
-        $this->em = $em;
-        $this->paymentService = $paymentService;
-        $this->invoiceService = $invoiceService;
-        $this->logger = $logger;
-    }
-
     /**
      * Displays the payment history for the currently logged-in user with pagination.
      *
@@ -47,22 +30,20 @@ class PaymentController extends AbstractController
      */
     public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator, LoggerInterface $logger): Response
     {
-        $this->logger->info(
+        $logger->info(
             'User accessed payment history.',
             [
-                'user_id' => $this->getUser()?->getId(),
+                'user_id' => $this->getUser()?->getId()
             ]
         );
 
-        // Retrieve payments for the logged-in user, ordered by creation date descending
-        $query = $this->em->getRepository(Payment::class)
-                          ->createQueryBuilder('p')
-                          ->where('p.user = :user')
-                          ->setParameter('user', $this->getUser())
-                          ->orderBy('p.createdAt', 'DESC')
-                          ->getQuery();
+        $query = $em->getRepository(Payment::class)
+                    ->createQueryBuilder('p')
+                    ->where('p.user = :user')
+                    ->setParameter('user', $this->getUser())
+                    ->orderBy('p.createdAt', 'DESC')
+                    ->getQuery();
 
-        // Paginate results: 10 items per page
         $pagination = $paginator->paginate(
             $query,
             $request->query->getInt('page', 1),
@@ -96,7 +77,7 @@ class PaymentController extends AbstractController
      * "reason": "Insufficient funds"
      * }
      */
-    public function process(Request $request): JsonResponse
+    public function process(Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, LoggerInterface $logger): JsonResponse
     {
         $paymentId = (int) $request->get('paymentId', 0);
 
@@ -107,7 +88,7 @@ class PaymentController extends AbstractController
             ], 400);
         }
 
-        $payment = $this->em->getRepository(Payment::class)->find($paymentId);
+        $payment = $em->getRepository(Payment::class)->find($paymentId);
 
         if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
             return $this->json([
@@ -134,22 +115,19 @@ class PaymentController extends AbstractController
                 ], 400);
             }
 
-            // Process the payment
             $result = $this->paymentService->process($amount);
-
-            // Update the Payment entity
             $payment->setStatus($result['status']);
             $payment->setTransactionId($result['transaction_id']);
-            $this->em->flush();
+            $em->flush();
 
             // Generate invoice if payment succeeded
             if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
                 try {
-                    $invoice = $this->invoiceService->generate($payment);
+                    $invoice = $invoiceService->generate($payment);
                     $invoiceNumber = $invoice?->getInvoiceNumber();
                 } catch (Throwable $e) {
                     $invoiceNumber = null;
-                    $this->logger->error(
+                    $logger->error(
                         'Failed to generate invoice for successful payment.',
                         [
                             'exception' => $e,
@@ -172,10 +150,13 @@ class PaymentController extends AbstractController
             ], 400);
 
         } catch (Throwable $e) {
-            $this->logger->error('Unexpected error processing payment.', [
-                'exception' => $e,
-                'payment_id' => $paymentId
-            ]);
+            $logger->error(
+                'Unexpected error processing payment.',
+                [
+                    'exception' => $e,
+                    'payment_id' => $paymentId
+                ]
+            );
 
             return $this->json([
                 'status' => PaymentStatus::FAILED->value,
@@ -195,50 +176,144 @@ class PaymentController extends AbstractController
      *
      * @param int $paymentId
      * @param Request $request
+     * @param EntityManagerInterface $em
+     * @param PaymentService $paymentService
+     * @param InvoiceService $invoiceService
+     * @param LoggerInterface $logger
      * @return Response
      */
-    public function checkout(int $paymentId, Request $request): Response
+    public function checkout(int $paymentId, Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, LoggerInterface $logger): Response
     {
-        $payment = $this->em->getRepository(Payment::class)->find($paymentId);
+        $payment = $em->getRepository(Payment::class)->find($paymentId);
 
         if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
             $this->addFlash('error', 'Payment not found or unauthorized.');
             return $this->redirectToRoute('subscription_index');
         }
 
-        // If POST, process payment
+        if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
+            return $this->redirectToRoute('payment_success', ['paymentId' => $payment->getId()]);
+        }
+
         if ($request->isMethod('POST')) {
             try {
-                $result = $this->paymentService->process($payment->getAmount());
+                $result = $paymentService->process($payment->getAmount());
 
                 $payment->setStatus($result['status']);
-                $payment->setTransactionId($result['transaction_id'] ?? null);
-                $this->em->flush();
+                $payment->setTransactionId($result['transaction_id']);
+                $em->flush();
 
                 // Generate invoice if successful
                 if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
-                    $invoice = $this->invoiceService->generate($payment);
-                    $this->addFlash('success', 'Payment successful! Invoice generated: ' . $invoice->getInvoiceNumber());
+                    try {
+                        $invoice = $invoiceService->generate($payment);
+                        $invoiceNumber = $invoice?->getInvoiceNumber();
+                        $this->addFlash('success', 'Payment successful! Invoice generated: ' . $invoiceNumber);
+                    } catch (Throwable $e) {
+                        $invoiceNumber = null;
+                        $this->logger->error(
+                            'Failed to generate invoice for successful payment.',
+                            [
+                                'exception' => $e,
+                                'payment_id' => $payment->getId()
+                            ]
+                        );
+                    }
                 } else {
                     $this->addFlash('error', 'Payment failed: ' . ($result['reason'] ?? 'Unknown'));
+                    return $this->redirectToRoute('subscription_index');
                 }
 
-                return $this->redirectToRoute('payments_history');
+                return $this->redirectToRoute('payment_success', ['paymentId' => $payment->getId()]);
 
             } catch (Throwable $e) {
-                $this->logger->error('Payment processing error.', [
-                    'exception' => $e,
-                    'payment_id' => $payment->getId(),
-                ]);
+                $logger->error(
+                    'Payment processing error.',
+                    [
+                        'exception' => $e,
+                        'payment_id' => $payment->getId()
+                    ]
+                );
                 $this->addFlash('error', 'Unexpected error occurred during payment.');
                 return $this->redirectToRoute('subscription_index');
             }
         }
 
-        // Render checkout page
         return $this->render('payment/checkout.html.twig', [
             'payment' => $payment,
         ]);
+    }
+
+    /**
+     * Displays the success page for a successful payment.
+     *
+     * Retrieves the payment details and renders the success page. If the payment is not found
+     * or the user is not authorized, redirects to the subscription page. If the payment status
+     * is not "SUCCESS", redirects to the payments history.
+     *
+     * @param int $paymentId
+     * @param EntityManagerInterface $em
+     * @param LoggerInterface $logger
+     * @return Response
+     */
+    public function success(int $paymentId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    {
+        try {
+            $payment = $em->getRepository(Payment::class)->find($paymentId);
+
+            if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
+                $logger->warning(
+                    'Payment not found or unauthorized access',
+                    [
+                        'user_id' => $this->getUser()?->getId(),
+                        'payment_id' => $paymentId
+                    ]
+                );
+                $this->addFlash('error', 'Payment not found or unauthorized.');
+                return $this->redirectToRoute('subscription_index');
+            }
+
+            if ($payment->getStatus() !== PaymentStatus::SUCCESS->value) {
+                $logger->info(
+                    'Payment was not successful',
+                    [
+                        'user_id' => $this->getUser()?->getId(),
+                        'payment_id' => $paymentId,
+                        'status' => $payment->getStatus()
+                    ]
+                );
+                $this->addFlash('error', 'Payment was not successful.');
+                return $this->redirectToRoute('payments_history');
+            }
+
+            $invoiceNumber = $payment->getInvoice()->getInvoiceNumber();
+
+            $logger->info(
+                'Payment success page accessed',
+                [
+                    'user_id' => $this->getUser()?->getId(),
+                    'payment_id' => $paymentId,
+                    'invoice_number' => $invoiceNumber
+                ]
+            );
+
+            return $this->render('payment/success.html.twig', [
+                'payment' => $payment,
+                'invoiceNumber' => $invoiceNumber
+            ]);
+
+        } catch (Throwable $e) {
+            $logger->error(
+                'Unexpected error accessing payment success page',
+                [
+                    'exception' => $e,
+                    'payment_id' => $paymentId
+                ]
+            );
+
+            $this->addFlash('error', 'An unexpected error occurred.');
+            return $this->redirectToRoute('subscription_index');
+        }
     }
 
 }

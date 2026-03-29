@@ -62,7 +62,6 @@ class InvoiceService
             return null;
         }
 
-        // Prevent duplicate invoices
         if ($payment->getInvoice() !== null) {
             $this->logger->info(
                 'Invoice already exists for payment',
@@ -77,8 +76,6 @@ class InvoiceService
 
         $amount = $payment->getAmount();
         $taxRate = 0.23;
-
-        // Create invoice
         $invoice = new Invoice();
         $invoice->setPayment($payment);
         $invoice->setInvoiceNumber($this->generateInvoiceNumber());
@@ -92,7 +89,6 @@ class InvoiceService
         $invoice->setTax(round($amount * $taxRate, 2));
         $invoice->setCurrency($payment->getCurrency());
 
-        // Persist safely
         try {
             $this->em->persist($invoice);
             $this->em->flush();
@@ -104,7 +100,6 @@ class InvoiceService
                     'paymentId' => $payment->getId()
                 ]
             );
-            dd($e);
             throw new ORMException('Invoice persistence failed.');
         }
 

@@ -26,8 +26,8 @@
                 <p><strong>Invoice:</strong> {{ payment.invoice.invoiceNumber }}</p>
             {% endif %}
 
-            {# Form pointing to API for processing payment #}
-            <form method="post" action="{{ path('api_payment_process') }}">
+            {# Form for processing the payment #}
+            <form method="post" action="{{ path('payment_checkout', {'paymentId': payment.id}) }}">
                 <input type="hidden" name="paymentId" value="{{ payment.id }}">
                 <input type="hidden" name="amount" value="{{ payment.amount }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('pay' ~ payment.id) }}">

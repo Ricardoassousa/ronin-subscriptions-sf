@@ -30,3 +30,8 @@ payment_routes:
    resource: "routes/payment.yaml"
    type: "yaml"
    prefix: /payments
+
+invoice_routes:
+   resource: "routes/invoice.yaml"
+   type: "yaml"
+   prefix: /invoices

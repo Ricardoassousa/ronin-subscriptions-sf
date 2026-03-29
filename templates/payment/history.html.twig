@@ -47,7 +47,7 @@
                             <td class="text-center">{{ payment.transactionId ?? '-' }}</td>
                             <td class="text-center">
                                 {% if payment.invoice %}
-                                    <a href="{{ path('payment_checkout', { paymentId: payment.invoice.id }) }}" class="btn btn-sm btn-outline-primary">View Invoice</a>
+                                    <a href="{{ path('invoice_download', { invoiceId: payment.invoice.id }) }}" class="btn btn-sm btn-outline-primary">Download</a>
                                 {% else %}
                                     -
                                 {% endif %}

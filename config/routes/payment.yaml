@@ -7,3 +7,8 @@ payment_checkout:
     path: /checkout/{paymentId}
     controller: App\Controller\PaymentController::checkout
     methods: [GET, POST]
+
+payment_success:
+    path: /success/{paymentId}
+    controller: App\Controller\PaymentController::success
+    methods: [GET]

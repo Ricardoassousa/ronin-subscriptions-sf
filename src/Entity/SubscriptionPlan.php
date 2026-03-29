@@ -128,7 +128,6 @@ class SubscriptionPlan
      *
      * @var Collection<int, Subscription>
      */
-    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'subscriptionPlan')]
     private Collection $subscriptions;
 
     /**

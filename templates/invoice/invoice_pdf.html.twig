@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice.invoiceNumber }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .invoice-details div {
+            width: 48%;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table th {
+            background-color: #f1f1f1;
+        }
+        .table td {
+            background-color: #fafafa;
+        }
+        .total {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .total span {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Invoice #{{ invoice.invoiceNumber }}</h1>
+        <p><strong>Issued on:</strong> {{ invoice.createdAt|date('d/m/Y') }}</p>
+    </div>
+
+    <div class="invoice-details">
+        <div>
+            <h3>Billing Address:</h3>
+            <p>
+                {% if invoice.payment.user.customerProfile is not null %}
+                    {{ invoice.payment.user.customerProfile.firstName }} {{ invoice.payment.user.customerProfile.surname }}<br>
+                    {{ invoice.payment.user.email }}<br>
+                    {{ invoice.payment.user.customerProfile.primaryAddress }} {{ invoice.payment.user.customerProfile.secondaryAddress }}}<br>
+                {% else %}
+                    No customer profile available.<br>
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <h3>Payment Details:</h3>
+            <p>
+                <strong>Status:</strong> {{ invoice.status|capitalize }}<br>
+                <strong>Amount:</strong> {{ invoice.amount|number_format(2, '.', ',') }} {{ invoice.currency }}<br>
+                <strong>Tax:</strong> {{ invoice.tax|number_format(2, '.', ',') }} {{ invoice.currency }}<br>
+                <strong>Due Date:</strong> {{ invoice.dueDate|date('d/m/Y') }}<br>
+            </p>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Payment for services</td>
+                <td>{{ invoice.amount|number_format(2, '.', ',') }} {{ invoice.currency }}</td>
+            </tr>
+            {% if invoice.tax %}
+            <tr>
+                <td>Tax</td>
+                <td>{{ invoice.tax|number_format(2, '.', ',') }} {{ invoice.currency }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="total">
+        <span>Total: {{ invoice.amount + (invoice.tax ?? 0) | number_format(2, '.', ',') }} {{ invoice.currency }}</span>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+        <p>For inquiries, please contact us at: support@example.com</p>
+    </div>
+</div>
+
+</body>
+</html>
