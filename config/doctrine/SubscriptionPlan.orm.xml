@@ -10,8 +10,8 @@
         <field name="name" type="string" column="name" length="100" nullable="false"/>
         <field name="slug" type="string" column="slug" length="100" nullable="false" unique="true"/>
         <field name="description" type="text" column="description" nullable="true"/>
-        <field name="price" type="decimal" precision="10" scale="2" nullable="false"/>
-        <field name="discountPercent" type="decimal" precision="5" scale="2" nullable="true"/>
+        <field name="price" type="decimal" column="price" precision="10" scale="2" nullable="false"/>
+        <field name="discountPercent" type="decimal" column="discount_percent" precision="5" scale="2" nullable="true"/>
         <field name="currency" type="string" column="currency" length="3" nullable="true"/>
         <field name="billingInterval" type="string" column="billing_interval" length="10" nullable="false"/>
         <field name="features" type="json" column="features" nullable="false"/>
@@ -20,6 +20,7 @@
         <field name="isFeatured" type="boolean" column="is_featured" nullable="true" column-definition="BOOLEAN DEFAULT FALSE"/>
         <field name="sortOrder" type="integer" column="sort_order" nullable="true"/>
         <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
-        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="false"/>
+        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="true"/>
+        <one-to-many field="subscriptions" target-entity="App\Entity\Subscription" mapped-by="subscriptionPlan"/>
     </entity>
 </doctrine-mapping>

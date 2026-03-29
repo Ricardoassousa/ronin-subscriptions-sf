@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
+    <div class="w-100" style="max-width: 1200px;">
+
+        <h2 class="text-center mb-5 fw-bold" style="color:#000000; font-size:1.75rem;">
+            Payment Successfully Processed
+        </h2>
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} mb-3 text-center">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="card shadow-sm rounded-4 mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Payment Details</h5>
+                <p class="text-muted small">Thank you for your payment! Below are the details of your transaction.</p>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Transaction ID:</strong>
+                        <p>{{ payment.transactionId }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Amount Paid:</strong>
+                        <p>${{ payment.amount|number_format(2, '.', ',') }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Subscription Plan:</strong>
+                        <p>{{ payment.subscription.subscriptionPlan.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Billing Period:</strong>
+                        <p>{{ payment.subscription.subscriptionPlan.billingLabel }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Invoice Number:</strong>
+                        <p>{{ invoiceNumber }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Payment Status:</strong>
+                        <p class="text-success">Successful</p>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <a href="{{ path('payments_history') }}" class="btn btn-primary">Go to Payment History</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

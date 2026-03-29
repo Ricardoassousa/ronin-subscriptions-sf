@@ -3,8 +3,12 @@
 namespace App\Entity;
 
 use App\Entity\CustomerProfile;
+use App\Entity\Payment;
+use App\Entity\Subscription;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -73,6 +77,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $customerProfile;
 
     /**
+     * @var Collection<int, Subscription>
+     */
+    private Collection $subscriptions;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    private Collection $payments;
+
+    /**
      * Constructor.
      *
      * Initializes default values for roles and createdAt timestamp.
@@ -81,6 +95,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->roles = ['ROLE_USER'];
         $this->createdAt = new DateTimeImmutable();
+        $this->subscriptions = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     /**
@@ -262,6 +278,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $customerProfile->setUser($this);
         }
         $this->customerProfile = $customerProfile;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Subscription>
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    public function addSubscription(Subscription $subscription): static
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions->add($subscription);
+            $subscription->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(Subscription $subscription): static
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getUser() === $this) {
+                $subscription->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getUser() === $this) {
+                $payment->setUser(null);
+            }
+        }
 
         return $this;
     }
