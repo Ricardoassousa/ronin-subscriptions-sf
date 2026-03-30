@@ -30,8 +30,8 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Download invoices (PDF, optional, high-impact)
 
 ### Admin Dashboard
-- [ ] Dashboard overview
-- [ ] Display summary widgets with total subscriptions, active vs cancelled, and MRR
+- [x] Dashboard overview
+- [x] Display summary widgets with total subscriptions, active vs cancelled, and MRR
 - [ ] Recent activity feed
 - [ ] Charts and analytics (optional, high-impact)
 

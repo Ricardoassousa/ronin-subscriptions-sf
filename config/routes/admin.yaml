@@ -1,6 +1,6 @@
-admin_dashboard:
+admin_users_index:
     path: /
-    controller: App\Controller\Admin\AdminController::dashboard
+    controller: App\Controller\Admin\AdminController::indexUsers
 
 admin_users_list:
     path: /users
@@ -9,3 +9,7 @@ admin_users_list:
 admin_user_edit:
     path: /user/{id}/edit
     controller: App\Controller\Admin\AdminController::editUserRoles
+
+admin_dashboard:
+    path: /dashboard
+    controller: App\Controller\Admin\AdminController::dashboard

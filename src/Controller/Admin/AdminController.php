@@ -2,7 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Subscription;
 use App\Entity\User;
+use App\Enum\PaymentStatus;
+use App\Enum\SubscriptionStatus;
 use App\Form\UserRolesType;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,10 +32,11 @@ class AdminController extends AbstractController
      * Displays the admin dashboard with the list of the latest registered users
      * and the most recent orders.
      *
+     * @param EntityManagerInterface $em
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function dashboard(EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function indexUsers(EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         try {
             $users = $em->getRepository(User::class)->findBy([], ['id' => 'DESC'], 3);
@@ -49,7 +53,7 @@ class AdminController extends AbstractController
                 ]
             );
 
-            return $this->render('admin/dashboard.html.twig', [
+            return $this->render('admin/index.html.twig', [
                 'users' => $users
             ]);
 
@@ -189,6 +193,81 @@ class AdminController extends AbstractController
         return $this->render('admin/edit_user_roles.html.twig', [
             'form' => $form->createView(),
             'user' => $user
+        ]);
+    }
+
+    /**
+     * Displays the admin dashboard overview.
+     *
+     * This method renders a summary page with key metrics (KPIs) such as
+     * total subscriptions, active vs cancelled subscriptions, and monthly recurring revenue (MRR).
+     *
+     * It provides a high-level overview of the system for administrative users.
+     *
+     * Logging is included to track access and any potential errors during rendering.
+     *
+     * @param EntityManagerInterface $em
+     * @param LoggerInterface $logger
+     * @return Response
+     * @throws Throwable
+     */
+    public function dashboard(EntityManagerInterface $em, LoggerInterface $logger): Response
+    {
+        $subscriptions = $em->getRepository(Subscription::class)->findAll();
+
+        $totalSubscriptions = count($subscriptions);
+        $activeSubscriptions = 0;
+        $cancelledSubscriptions = 0;
+        $mrr = [];
+
+        $now = new DateTimeImmutable();
+
+        foreach ($subscriptions as $subscription) {
+            $status = $subscription->getStatus();
+            $endsAt = $subscription->getEndsAt();
+
+            if ($subscription->getStatus() === SubscriptionStatus::ACTIVE->value) {
+                $activeSubscriptions++;
+            }
+
+            if ($subscription->getStatus() === SubscriptionStatus::CANCELLED->value) {
+                $cancelledSubscriptions++;
+            }
+
+            if ($status === SubscriptionStatus::ACTIVE->value
+                || ($status === SubscriptionStatus::CANCELLED->value && $endsAt !== null && $endsAt > $now)
+            ) {
+                $amount = $subscription->getPriceSnapshot();
+                $currency = $subscription->getCurrencySnapshot();
+
+                if ($subscription->getBillingIntervalSnapshot() === 'year') {
+                    $amount /= 12;
+                }
+
+                $mrr[$currency] = ($mrr[$currency] ?? 0) + $amount;
+            }
+        }
+
+        $metrics = [
+            'totalSubscriptions' => $totalSubscriptions,
+            'activeSubscriptions' => $activeSubscriptions,
+            'cancelledSubscriptions' => $cancelledSubscriptions,
+            'mrr' => $mrr
+        ];
+
+        $logger->info(
+            'Admin dashboard accessed',
+            [
+                'admin_id' => $this->getUser() ? $this->getUser()->getId() : null,
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
+
+        return $this->render('admin/dashboard.html.twig', [
+            'metrics' => $metrics,
         ]);
     }
 
