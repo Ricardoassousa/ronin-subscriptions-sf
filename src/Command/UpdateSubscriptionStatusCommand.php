@@ -2,7 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\ActivityLog;
 use App\Entity\Subscription;
+use App\Enum\ActivityLogType;
 use App\Enum\SubscriptionStatus;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -89,6 +91,17 @@ class UpdateSubscriptionStatusCommand extends Command
                         $subscription->getId(),
                         $subscription->getNextBillingAt()->format('Y-m-d H:i:s')
                     ));
+
+                    $activity = new ActivityLog();
+                    $activity->setType(ActivityLogType::SUBSCRIPTION_EXPIRED->value);
+                    $activity->setDescription(sprintf(
+                        'Subscription #%d expired automatically',
+                        $subscription->getId()
+                    ));
+                    $activity->setRelatedType(ActivityLogType::SUBSCRIPTION_EXPIRED->getRelatedType());
+                    $activity->setRelatedId($subscription->getId());
+                    $activity->setUser(null);
+                    $this->em->persist($activity);
 
                     $this->logger->info(
                         'Subscription expired automatically',

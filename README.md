@@ -32,7 +32,7 @@ The Subscription Management application implements the core and high-impact feat
 ### Admin Dashboard
 - [x] Dashboard overview
 - [x] Display summary widgets with total subscriptions, active vs cancelled, and MRR
-- [ ] Recent activity feed
+- [x] Recent activity feed
 - [ ] Charts and analytics (optional, high-impact)
 
 ### Notifications

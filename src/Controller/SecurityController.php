@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
+use App\Entity\User;
+use App\Enum\ActivityLogType;
+use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -26,28 +30,36 @@ class SecurityController extends AbstractController
      * It displays the form with the last submitted username and any authentication error.
      *
      * @param Request $request
+     * @param EntityManagerInterface $em
      * @param AuthenticationUtils $authenticationUtils
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function login(Request $request, AuthenticationUtils $authenticationUtils, LoggerInterface $logger): Response
+    public function login(Request $request, EntityManagerInterface $em, AuthenticationUtils $authenticationUtils, LoggerInterface $logger): Response
     {
         try {
             $lastUsername = $authenticationUtils->getLastUsername();
             $error = $authenticationUtils->getLastAuthenticationError();
 
             if ($error) {
-                $logger->info(
-                    'Authentication failed on login page.',
-                    [
-                        'username' => $lastUsername,
-                        'exception' => $error,
-                        'source' => [
-                            'method' => __METHOD__,
-                            'line' => __LINE__
-                        ]
-                    ]
-                );
+                $activity = new ActivityLog();
+                $activity->setType(ActivityLogType::LOGIN_FAILED->value);
+                $activity->setDescription(sprintf(
+                    'Failed login attempt for username "%s" from IP %s, user agent: %s',
+                    $lastUsername,
+                    $request->getClientIp(),
+                    $request->headers->get('User-Agent')
+                ));
+                $activity->setRelatedType(ActivityLogType::LOGIN_FAILED->getRelatedType());
+                // Optionally: set relatedId if username exists in DB
+                $user = $em->getRepository(User::class)->findOneBy(['email' => $lastUsername]);
+                if ($user !== null) {
+                    $activity->setRelatedId($user->getId());
+                    $activity->setUser($user);
+                }
+
+                $em->persist($activity);
+                $em->flush();
             } else {
                 $logger->info(
                     'Login page accessed.',

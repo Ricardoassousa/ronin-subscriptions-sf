@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Cart;
 use App\Entity\CustomerProfile;
+use App\Enum\ActivityLogType;
 use App\Form\CustomerProfileType;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;

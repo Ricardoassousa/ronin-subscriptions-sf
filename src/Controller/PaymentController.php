@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Payment;
+use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;

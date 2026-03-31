@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ActivityLog;
 use App\Entity\CustomerProfile;
 use App\Entity\Payment;
 use App\Entity\Subscription;
@@ -87,6 +88,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $payments;
 
     /**
+     * @var Collection<int, ActivityLog>
+     */
+    private Collection $activityLogs;
+
+    /**
      * Constructor.
      *
      * Initializes default values for roles and createdAt timestamp.
@@ -97,6 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = new DateTimeImmutable();
         $this->subscriptions = new ArrayCollection();
         $this->payments = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
     }
 
     /**
@@ -336,6 +343,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($payment->getUser() === $this) {
                 $payment->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ActivityLog>
+     */
+    public function getActivityLogs(): Collection
+    {
+        return $this->activityLogs;
+    }
+
+    public function addActivityLog(ActivityLog $activityLog): static
+    {
+        if (!$this->activityLogs->contains($activityLog)) {
+            $this->activityLogs->add($activityLog);
+            $activityLog->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivityLog(ActivityLog $activityLog): static
+    {
+        if ($this->activityLogs->removeElement($activityLog)) {
+            // set the owning side to null (unless already changed)
+            if ($activityLog->getUser() === $this) {
+                $activityLog->setUser(null);
             }
         }
 

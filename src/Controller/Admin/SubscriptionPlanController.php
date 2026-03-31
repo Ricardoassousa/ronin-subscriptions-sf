@@ -2,8 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\ActivityLog;
 use App\Entity\SubscriptionPlan;
 use App\Entity\SubscriptionPlanSearch;
+use App\Enum\ActivityLogType;
 use App\Form\SubscriptionPlanType;
 use App\Form\SubscriptionPlanSearchType;
 use App\Service\SlugGenerator;

@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
-use App\Form\UserProfileFormType;
+use App\Entity\ActivityLog;
 use App\Entity\User;
+use App\Enum\ActivityLogType;
+use App\Form\UserProfileFormType;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;

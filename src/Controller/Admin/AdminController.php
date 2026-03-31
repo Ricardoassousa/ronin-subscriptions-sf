@@ -2,11 +2,14 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\ActivityLog;
 use App\Entity\Subscription;
 use App\Entity\User;
+use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
 use App\Enum\SubscriptionStatus;
 use App\Form\UserRolesType;
+use App\Service\DashboardService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -199,61 +202,26 @@ class AdminController extends AbstractController
     /**
      * Displays the admin dashboard overview.
      *
-     * This method renders a summary page with key metrics (KPIs) such as
-     * total subscriptions, active vs cancelled subscriptions, and monthly recurring revenue (MRR).
+     * Renders a summary page with key system metrics (KPIs) such as:
+     * - Total subscriptions
+     * - Active vs cancelled subscriptions
+     * - Monthly recurring revenue (MRR)
      *
-     * It provides a high-level overview of the system for administrative users.
+     * Additionally, provides a feed of the most recent activities (up to 20 by default).
      *
-     * Logging is included to track access and any potential errors during rendering.
+     * This method delegates the calculation of metrics and retrieval of activities
+     * to the DashboardService, keeping the controller lean and focused on rendering.
      *
-     * @param EntityManagerInterface $em
+     * Logging is performed to track access by administrative users.
+     *
+     * @param DashboardService $dashboardService
      * @param LoggerInterface $logger
      * @return Response
-     * @throws Throwable
      */
-    public function dashboard(EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function dashboard(DashboardService $dashboardService, LoggerInterface $logger): Response
     {
-        $subscriptions = $em->getRepository(Subscription::class)->findAll();
-
-        $totalSubscriptions = count($subscriptions);
-        $activeSubscriptions = 0;
-        $cancelledSubscriptions = 0;
-        $mrr = [];
-
-        $now = new DateTimeImmutable();
-
-        foreach ($subscriptions as $subscription) {
-            $status = $subscription->getStatus();
-            $endsAt = $subscription->getEndsAt();
-
-            if ($subscription->getStatus() === SubscriptionStatus::ACTIVE->value) {
-                $activeSubscriptions++;
-            }
-
-            if ($subscription->getStatus() === SubscriptionStatus::CANCELLED->value) {
-                $cancelledSubscriptions++;
-            }
-
-            if ($status === SubscriptionStatus::ACTIVE->value
-                || ($status === SubscriptionStatus::CANCELLED->value && $endsAt !== null && $endsAt > $now)
-            ) {
-                $amount = $subscription->getPriceSnapshot();
-                $currency = $subscription->getCurrencySnapshot();
-
-                if ($subscription->getBillingIntervalSnapshot() === 'year') {
-                    $amount /= 12;
-                }
-
-                $mrr[$currency] = ($mrr[$currency] ?? 0) + $amount;
-            }
-        }
-
-        $metrics = [
-            'totalSubscriptions' => $totalSubscriptions,
-            'activeSubscriptions' => $activeSubscriptions,
-            'cancelledSubscriptions' => $cancelledSubscriptions,
-            'mrr' => $mrr
-        ];
+        $metrics = $dashboardService->getMetrics();
+        $recentActivities = $dashboardService->getRecentActivities(20);
 
         $logger->info(
             'Admin dashboard accessed',
@@ -268,6 +236,7 @@ class AdminController extends AbstractController
 
         return $this->render('admin/dashboard.html.twig', [
             'metrics' => $metrics,
+            'recentActivities' => $recentActivities
         ]);
     }
 
