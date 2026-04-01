@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Invoice;
+use App\Enum\ActivityLogType;
 use Doctrine\ORM\EntityManagerInterface;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;

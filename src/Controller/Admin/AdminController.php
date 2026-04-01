@@ -2,8 +2,15 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\ActivityLog;
+use App\Entity\Subscription;
 use App\Entity\User;
+use App\Enum\ActivityLogType;
+use App\Enum\PaymentStatus;
+use App\Enum\SubscriptionStatus;
 use App\Form\UserRolesType;
+use App\Service\AnalyticsService;
+use App\Service\DashboardService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -11,6 +18,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -29,10 +37,11 @@ class AdminController extends AbstractController
      * Displays the admin dashboard with the list of the latest registered users
      * and the most recent orders.
      *
+     * @param EntityManagerInterface $em
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function dashboard(EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function indexUsers(EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         try {
             $users = $em->getRepository(User::class)->findBy([], ['id' => 'DESC'], 3);
@@ -49,7 +58,7 @@ class AdminController extends AbstractController
                 ]
             );
 
-            return $this->render('admin/dashboard.html.twig', [
+            return $this->render('admin/index.html.twig', [
                 'users' => $users
             ]);
 
@@ -189,6 +198,97 @@ class AdminController extends AbstractController
         return $this->render('admin/edit_user_roles.html.twig', [
             'form' => $form->createView(),
             'user' => $user
+        ]);
+    }
+
+    /**
+     * Displays the admin dashboard overview.
+     *
+     * Renders a summary page with key system metrics (KPIs) such as:
+     * - Total subscriptions
+     * - Active vs cancelled subscriptions
+     * - Monthly recurring revenue (MRR)
+     *
+     * Additionally, provides a feed of the most recent activities (up to 20 by default).
+     *
+     * This method delegates the calculation of metrics and retrieval of activities
+     * to the DashboardService, keeping the controller lean and focused on rendering.
+     *
+     * Logging is performed to track access by administrative users.
+     *
+     * @param DashboardService $dashboardService
+     * @param LoggerInterface $logger
+     * @return Response
+     */
+    public function dashboard(DashboardService $dashboardService, LoggerInterface $logger): Response
+    {
+        $metrics = $dashboardService->getMetrics();
+        $recentActivities = $dashboardService->getRecentActivities(20);
+
+        $logger->info(
+            'Admin dashboard accessed',
+            [
+                'admin_id' => $this->getUser() ? $this->getUser()->getId() : null,
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
+
+        return $this->render('admin/dashboard.html.twig', [
+            'metrics' => $metrics,
+            'recentActivities' => $recentActivities
+        ]);
+    }
+
+    /**
+     * Provides monthly growth data for new subscriptions.
+     *
+     * This endpoint returns JSON data suitable for charting with Chart.js.
+     * Each data point represents the total number of new subscriptions per month.
+     *
+     * Query Parameters:
+     * - months (int, optional, default=6): Number of past months to include in the report.
+     *
+     * Example response:
+     * {
+     *   "labels": ["2026-04", "2026-03", "2026-02"],
+     *   "datasets": [
+     *     {
+     *       "label": "New Subscriptions",
+     *       "data": [5, 12, 8],
+     *       "backgroundColor": "rgba(54, 162, 235, 0.2)",
+     *       "borderColor": "rgba(54, 162, 235, 1)",
+     *       "borderWidth": 1
+     *     }
+     *   ]
+     * }
+     *
+     * @param Request $request
+     * @param AnalyticsService $analyticsService
+     * @return JsonResponse
+     */
+    public function growth(Request $request, AnalyticsService $analyticsService): JsonResponse
+    {
+        $months = (int) $request->query->get('months', 6);
+
+        $data = $analyticsService->getMonthlyGrowth($months);
+
+        $labels = array_column($data, 'month');
+        $values = array_column($data, 'total');
+
+        return $this->json([
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'New Subscriptions',
+                    'data' => $values,
+                    'backgroundColor' => 'rgba(54, 162, 235, 0.2)',
+                    'borderColor' => 'rgba(54, 162, 235, 1)',
+                    'borderWidth' => 1,
+                ]
+            ]
         ]);
     }
 

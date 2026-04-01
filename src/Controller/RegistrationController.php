@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\User;
+use App\Enum\ActivityLogType;
 use App\Form\RegistrationFormType;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,16 +59,14 @@ class RegistrationController extends AbstractController
                 if ($em->getRepository(User::class)->findOneBy(['email' => $email])) {
                     $form->get('email')->addError(new FormError('This email is already registered.'));
 
-                    $logger->info(
-                        'Duplicate email attempted during registration.',
-                        [
-                            'email' => $email,
-                            'source' => [
-                                'method' => __METHOD__,
-                                'line' => __LINE__
-                            ]
-                        ]
-                    );
+                    $activityDuplicate = new ActivityLog();
+                    $activityDuplicate->setType(ActivityLogType::EMAIL_DUPLICATE_ATTEMPT->value);
+                    $activityDuplicate->setDescription("Duplicate email attempted during registration: $email");
+                    $activityDuplicate->setUser($this->getUser());
+                    $activityDuplicate->setRelatedType(ActivityLogType::EMAIL_DUPLICATE_ATTEMPT->getRelatedType());
+                    $activityDuplicate->setRelatedId(null);
+                    $em->persist($activityDuplicate);
+                    $em->flush();
                 }
 
                 if ($form->isValid()) {
@@ -74,6 +74,15 @@ class RegistrationController extends AbstractController
                     $em->persist($user);
 
                     try {
+                        $em->flush();
+
+                        $activitySuccess = new ActivityLog();
+                        $activitySuccess->setType(ActivityLogType::USER_REGISTERED->value);
+                        $activitySuccess->setDescription("User registered successfully: {$email}");
+                        $activitySuccess->setUser($user);
+                        $activitySuccess->setRelatedType(ActivityLogType::USER_REGISTERED->getRelatedType());
+                        $activitySuccess->setRelatedId($user->getId());
+                        $em->persist($activitySuccess);
                         $em->flush();
                     } catch (UniqueConstraintViolationException $e) {
                         $logger->error(

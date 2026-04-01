@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Payment;
 use App\Entity\Subscription;
 use App\Entity\SubscriptionPlan;
+use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
@@ -23,7 +25,7 @@ use Throwable;
  *
  * Provides functionality for subscribing, cancelling, and listing subscriptions.
  */
-final class SubscriptionController extends AbstractController
+class SubscriptionController extends AbstractController
 {
     /**
      * Displays a list or dashboard of the user's subscriptions.
