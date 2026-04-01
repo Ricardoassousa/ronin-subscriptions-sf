@@ -13,3 +13,7 @@ admin_user_edit:
 admin_dashboard:
     path: /dashboard
     controller: App\Controller\Admin\AdminController::dashboard
+
+admin_analytics_growth:
+    path: /analytics/growth
+    controller: App\Controller\Admin\AdminController::growth

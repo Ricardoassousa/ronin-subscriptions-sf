@@ -66,16 +66,13 @@ class ProfileController extends AbstractController
                     $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
                     $user->setUpdatedAt(new DateTimeImmutable());
 
-                    $logger->info(
-                        'User password updated.',
-                        [
-                            'user_id' => $user->getId(),
-                            'source' => [
-                                'method' => __METHOD__,
-                                'line' => __LINE__
-                            ]
-                        ]
-                    );
+                    $activity = new ActivityLog();
+                    $activity->setType(ActivityLogType::PASSWORD_CHANGED->value);
+                    $activity->setDescription('User password updated.');
+                    $activity->setRelatedType(ActivityLogType::PASSWORD_CHANGED->getRelatedType());
+                    $activity->setRelatedId($user->getId());
+                    $activity->setUser($user);
+                    $this->em->persist($activity);
                 }
 
                 $this->em->flush();

@@ -9,6 +9,7 @@ use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
 use App\Enum\SubscriptionStatus;
 use App\Form\UserRolesType;
+use App\Service\AnalyticsService;
 use App\Service\DashboardService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +18,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -237,6 +239,56 @@ class AdminController extends AbstractController
         return $this->render('admin/dashboard.html.twig', [
             'metrics' => $metrics,
             'recentActivities' => $recentActivities
+        ]);
+    }
+
+    /**
+     * Provides monthly growth data for new subscriptions.
+     *
+     * This endpoint returns JSON data suitable for charting with Chart.js.
+     * Each data point represents the total number of new subscriptions per month.
+     *
+     * Query Parameters:
+     * - months (int, optional, default=6): Number of past months to include in the report.
+     *
+     * Example response:
+     * {
+     *   "labels": ["2026-04", "2026-03", "2026-02"],
+     *   "datasets": [
+     *     {
+     *       "label": "New Subscriptions",
+     *       "data": [5, 12, 8],
+     *       "backgroundColor": "rgba(54, 162, 235, 0.2)",
+     *       "borderColor": "rgba(54, 162, 235, 1)",
+     *       "borderWidth": 1
+     *     }
+     *   ]
+     * }
+     *
+     * @param Request $request
+     * @param AnalyticsService $analyticsService
+     * @return JsonResponse
+     */
+    public function growth(Request $request, AnalyticsService $analyticsService): JsonResponse
+    {
+        $months = (int) $request->query->get('months', 6);
+
+        $data = $analyticsService->getMonthlyGrowth($months);
+
+        $labels = array_column($data, 'month');
+        $values = array_column($data, 'total');
+
+        return $this->json([
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'New Subscriptions',
+                    'data' => $values,
+                    'backgroundColor' => 'rgba(54, 162, 235, 0.2)',
+                    'borderColor' => 'rgba(54, 162, 235, 1)',
+                    'borderWidth' => 1,
+                ]
+            ]
         ]);
     }
 

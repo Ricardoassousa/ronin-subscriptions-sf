@@ -19,8 +19,7 @@ class DashboardService
     /**
      * DashboardService constructor.
      *
-     * @param EntityManagerInterface $logger
-     * @param LoggerInterface $logger
+     * @param EntityManagerInterface $em
      */
     public function __construct(EntityManagerInterface $em)
     {

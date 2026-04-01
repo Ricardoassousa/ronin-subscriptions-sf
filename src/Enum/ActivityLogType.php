@@ -74,8 +74,8 @@ enum ActivityLogType: string
     /** An existing subscription plan has been updated. */
     case PLAN_UPDATED = 'plan_updated';
 
-    /** A subscription plan has been deleted or deactivated. */
-    case PLAN_DELETED = 'plan_deleted';
+    /** An existing subscription plan has been toggled. */
+    case PLAN_TOGGLED = 'plan_toggled';
 
 
     // ========================
@@ -88,11 +88,11 @@ enum ActivityLogType: string
     /** A user has changed their password. */
     case PASSWORD_CHANGED = 'password_changed';
 
-    /** A user has changed their email address. */
-    case EMAIL_CHANGED = 'email_changed';
-
     /** A user has registered in the system. */
     case USER_REGISTERED = 'user_registered';
+
+    /** A customer profile has registered in the system. */
+    case CUSTOMER_PROFILE_REGISTERED = 'customer_profile_registered';
 
     // ========================
     // AUTH / SECURITY
@@ -106,7 +106,6 @@ enum ActivityLogType: string
 
     /** An attempt to register an already existing email occurred. */
     case EMAIL_DUPLICATE_ATTEMPT = 'email_duplicate_attempt';
-
 
     /**
      * Get a human-readable label for the activity type.
@@ -134,14 +133,17 @@ enum ActivityLogType: string
 
             self::PLAN_CREATED => 'Plan created',
             self::PLAN_UPDATED => 'Plan updated',
-            self::PLAN_DELETED => 'Plan deleted',
+            self::PLAN_TOGGLED => 'Plan toggled',
 
             self::PROFILE_UPDATED => 'Profile updated',
             self::PASSWORD_CHANGED => 'Password changed',
-            self::EMAIL_CHANGED => 'Email changed',
+
+            self::USER_REGISTERED => 'User registered',
+            self::CUSTOMER_PROFILE_REGISTERED => 'Customer profile registered',
 
             self::LOGIN_FAILED => 'Login failed',
             self::ACCOUNT_LOCKED => 'Account locked',
+            self::EMAIL_DUPLICATE_ATTEMPT => 'Email duplicate attempt',
         };
     }
 
@@ -201,11 +203,13 @@ enum ActivityLogType: string
 
             self::PLAN_CREATED,
             self::PLAN_UPDATED,
-            self::PLAN_DELETED => 'Plan',
+            self::PLAN_TOGGLED => 'Plan',
 
             self::PROFILE_UPDATED,
-            self::PASSWORD_CHANGED,
-            self::EMAIL_CHANGED => 'User',
+            self::PASSWORD_CHANGED => 'User',
+
+            self::USER_REGISTERED,
+            self::CUSTOMER_PROFILE_REGISTERED => 'User',
 
             self::LOGIN_FAILED,
             self::ACCOUNT_LOCKED => 'User',
