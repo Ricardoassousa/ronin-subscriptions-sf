@@ -23,11 +23,13 @@
 
         {% for field in form %}
             <div class="mb-3">
-                {{ form_label(field) }}
+                {% if field.vars.name != '_token' %}
+                    {{ form_label(field) }}
+                {% endif %}
                 {{ form_widget(field, {
                     'attr': {
                         'class': (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') 
-                                 ~ (field.vars.errors|length ? ' is-invalid' : '')
+                            ~ (field.vars.errors|length ? ' is-invalid' : '')
                     }
                 }) }}
                 {% for error in field.vars.errors %}
@@ -49,20 +51,6 @@
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
                 Save Changes
             </button>
-
-            <a href="{{ path('admin_users_list') }}"
-               class="btn fw-semibold w-100 w-md-auto"
-               style="
-                    background:#ffffff;
-                    color:#6f42c1;
-                    border:2px solid #6f42c1;
-                    border-radius:0.375rem;
-                    transition: all 0.2s;
-               "
-               onmouseover="this.style.background='#6f42c1'; this.style.color='#fff';"
-               onmouseout="this.style.background='#ffffff'; this.style.color='#6f42c1';">
-                Back to Users list
-            </a>
         </div>
 
         {{ form_end(form) }}

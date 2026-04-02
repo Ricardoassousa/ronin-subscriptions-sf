@@ -112,9 +112,7 @@ class SubscriptionPlanController extends AbstractController
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            dd($e);
-
-            $this->addFlash('error', 'An error occurred while loading the subscription plans list.');
+            $this->addFlash('danger', 'An error occurred while loading the subscription plans list.');
         }
 
     }
@@ -173,7 +171,7 @@ class SubscriptionPlanController extends AbstractController
                     'method' => __METHOD__
                 ]);
 
-                $this->addFlash('error', 'Failed to create subscription plan.');
+                $this->addFlash('danger', 'Failed to create subscription plan.');
             }
         }
 
@@ -257,7 +255,7 @@ class SubscriptionPlanController extends AbstractController
                     'controller' => __CLASS__,
                     'method' => __METHOD__
                 ]);
-                $this->addFlash('error', 'Failed to update subscription plan.');
+                $this->addFlash('danger', 'Failed to update subscription plan.');
             }
         }
 
@@ -318,7 +316,7 @@ class SubscriptionPlanController extends AbstractController
                 'controller' => __CLASS__,
                 'method' => __METHOD__
             ]);
-            $this->addFlash('error', 'Failed to update subscription plan status.');
+            $this->addFlash('danger', 'Failed to update subscription plan status.');
         }
 
         return $this->redirectToRoute('subscription_plan_index');

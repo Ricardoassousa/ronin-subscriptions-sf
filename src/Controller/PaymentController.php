@@ -6,6 +6,7 @@ use App\Entity\ActivityLog;
 use App\Entity\Payment;
 use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
+use App\Service\CustomerProfileService;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,23 +27,30 @@ class PaymentController extends AbstractController
      *
      * @param Request $request
      * @param EntityManagerInterface $em
+     * @param CustomerProfileService $customerProfileService
      * @param PaginatorInterface $paginator
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator, LoggerInterface $logger): Response
+    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger): Response
     {
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         $logger->info(
             'User accessed payment history.',
             [
-                'user_id' => $this->getUser()?->getId()
+                'user_id' => $user?->getId()
             ]
         );
 
         $query = $em->getRepository(Payment::class)
                     ->createQueryBuilder('p')
                     ->where('p.user = :user')
-                    ->setParameter('user', $this->getUser())
+                    ->setParameter('user', $user)
                     ->orderBy('p.createdAt', 'DESC')
                     ->getQuery();
 
@@ -79,7 +87,7 @@ class PaymentController extends AbstractController
      * "reason": "Insufficient funds"
      * }
      */
-    public function process(Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, LoggerInterface $logger): JsonResponse
+    public function process(Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger): JsonResponse
     {
         $paymentId = (int) $request->get('paymentId', 0);
 
@@ -92,7 +100,7 @@ class PaymentController extends AbstractController
 
         $payment = $em->getRepository(Payment::class)->find($paymentId);
 
-        if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
+        if (!$payment || $payment->getUser()?->getId() !== $user?->getId()) {
             return $this->json([
                 'status' => PaymentStatus::FAILED->value,
                 'reason' => 'Payment not found or unauthorized'
@@ -181,15 +189,21 @@ class PaymentController extends AbstractController
      * @param EntityManagerInterface $em
      * @param PaymentService $paymentService
      * @param InvoiceService $invoiceService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function checkout(int $paymentId, Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, LoggerInterface $logger): Response
+    public function checkout(int $paymentId, Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
-        $payment = $em->getRepository(Payment::class)->find($paymentId);
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
 
-        if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
-            $this->addFlash('error', 'Payment not found or unauthorized.');
+        $payment = $em->getRepository(Payment::class)->find($paymentId);
+        if (!$payment || $payment->getUser()?->getId() !== $user?->getId()) {
+            $this->addFlash('danger', 'Payment not found or unauthorized.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -222,7 +236,7 @@ class PaymentController extends AbstractController
                         );
                     }
                 } else {
-                    $this->addFlash('error', 'Payment failed: ' . ($result['reason'] ?? 'Unknown'));
+                    $this->addFlash('danger', 'Payment failed: ' . ($result['reason'] ?? 'Unknown'));
                     return $this->redirectToRoute('subscription_index');
                 }
 
@@ -236,7 +250,7 @@ class PaymentController extends AbstractController
                         'payment_id' => $payment->getId()
                     ]
                 );
-                $this->addFlash('error', 'Unexpected error occurred during payment.');
+                $this->addFlash('danger', 'Unexpected error occurred during payment.');
                 return $this->redirectToRoute('subscription_index');
             }
         }
@@ -255,23 +269,30 @@ class PaymentController extends AbstractController
      *
      * @param int $paymentId
      * @param EntityManagerInterface $em
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function success(int $paymentId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function success(int $paymentId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         try {
             $payment = $em->getRepository(Payment::class)->find($paymentId);
 
-            if (!$payment || $payment->getUser()?->getId() !== $this->getUser()?->getId()) {
+            if (!$payment || $payment->getUser()?->getId() !== $user?->getId()) {
                 $logger->warning(
                     'Payment not found or unauthorized access',
                     [
-                        'user_id' => $this->getUser()?->getId(),
+                        'user_id' => $user?->getId(),
                         'payment_id' => $paymentId
                     ]
                 );
-                $this->addFlash('error', 'Payment not found or unauthorized.');
+                $this->addFlash('danger', 'Payment not found or unauthorized.');
                 return $this->redirectToRoute('subscription_index');
             }
 
@@ -279,12 +300,12 @@ class PaymentController extends AbstractController
                 $logger->info(
                     'Payment was not successful',
                     [
-                        'user_id' => $this->getUser()?->getId(),
+                        'user_id' => $user?->getId(),
                         'payment_id' => $paymentId,
                         'status' => $payment->getStatus()
                     ]
                 );
-                $this->addFlash('error', 'Payment was not successful.');
+                $this->addFlash('danger', 'Payment was not successful.');
                 return $this->redirectToRoute('payments_history');
             }
 
@@ -293,7 +314,7 @@ class PaymentController extends AbstractController
             $logger->info(
                 'Payment success page accessed',
                 [
-                    'user_id' => $this->getUser()?->getId(),
+                    'user_id' => $user?->getId(),
                     'payment_id' => $paymentId,
                     'invoice_number' => $invoiceNumber
                 ]
@@ -313,7 +334,7 @@ class PaymentController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'An unexpected error occurred.');
+            $this->addFlash('danger', 'An unexpected error occurred.');
             return $this->redirectToRoute('subscription_index');
         }
     }
