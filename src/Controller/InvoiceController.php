@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ActivityLog;
 use App\Entity\Invoice;
 use App\Enum\ActivityLogType;
+use App\Service\CustomerProfileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
@@ -26,14 +27,21 @@ class InvoiceController extends AbstractController
      *
      * @param int $invoiceId
      * @param EntityManagerInterface $em
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      * @throws NotFoundHttpException
      * @throws MpdfException
      * @throws RuntimeException
      */
-    public function downloadInvoicePdf(int $invoiceId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function downloadInvoicePdf(int $invoiceId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         $logger->info(
             'Attempt to download invoice PDF.',
             [

@@ -55,10 +55,6 @@ class CustomerProfileController extends AbstractController
     {
         try {
             $user = $this->getUser();
-            if (!$user) {
-                throw new AccessDeniedException('User must be logged in.');
-            }
-
             $logger->info(
                 'Customer profile page accessed.',
                 [
@@ -120,7 +116,7 @@ class CustomerProfileController extends AbstractController
                 );
 
                 $this->addFlash('success', 'Profile saved successfully!');
-                return $this->redirectToRoute('app_customer_profile');
+                return $this->redirectToRoute('subscription_index');
             }
 
             return $this->render('customer_profile/edit.html.twig', [

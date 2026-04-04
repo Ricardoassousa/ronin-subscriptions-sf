@@ -1,0 +1,41 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block title %}Subscription Confirmation{% endblock %}
+
+{% block body %}
+    <h2 class="mb-3">Thank you for your subscription!</h2>
+
+    <p>
+        Subscription No. <strong>#{{ subscription.id }}</strong><br>
+        Plan: <strong>{{ subscription.subscriptionPlan.name }}</strong><br>
+        Status: <strong>{{ subscription.status }}</strong><br>
+        Subscription started at: <strong>{{ subscription.startedAt|date('F j, Y') }}</strong>
+    </p>
+
+    <h4 class="my-4">Billing Details</h4>
+
+    <p>
+        Price: <strong>{{ subscription.priceSnapshot }} {{ subscription.currencySnapshot }}</strong><br>
+        Billing Interval: <strong>{{ subscription.billingIntervalSnapshot }}</strong><br>
+        {% if subscription.discountPercentSnapshot is not null %}
+            Discount: <strong>{{ subscription.discountPercentSnapshot }}%</strong><br>
+        {% endif %}
+        Total: <strong>
+            {% set final_price = subscription.getCurrentPrice() %}
+            {{ final_price }} {{ subscription.currencySnapshot }}
+        </strong>
+    </p>
+
+    <h4 class="my-4">Important Dates</h4>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">Trial ends at: <strong>{{ subscription.trialEndsAt ? subscription.trialEndsAt|date('F j, Y') : 'N/A' }}</strong></li>
+        <li class="list-group-item">Next billing date: <strong>{{ subscription.nextBillingAt ? subscription.nextBillingAt|date('F j, Y') : 'N/A' }}</strong></li>
+        <li class="list-group-item">Subscription ends at: <strong>{{ subscription.endsAt ? subscription.endsAt|date('F j, Y') : 'Still active' }}</strong></li>
+    </ul>
+
+    <h4 class="my-4">Customer Information</h4>
+    <p>
+        Customer: <strong>{{ subscription.user.customerProfile.firstName }} {{ subscription.user.customerProfile.surname }}</strong><br>
+        Email: <strong>{{ subscription.user.email }}</strong>
+    </p>
+{% endblock %}
