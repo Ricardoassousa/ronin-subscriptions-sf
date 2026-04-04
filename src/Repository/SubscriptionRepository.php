@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Subscription;
+use App\Enum\SubscriptionStatus;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +40,32 @@ class SubscriptionRepository extends ServiceEntityRepository
             ->setParameter('status', 'active');
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Finds an active or past due subscription by user email.
+     *
+     * This method retrieves a subscription associated with the given email,
+     * but only if its status is ACTIVE or PAST_DUE.
+     *
+     * @param string $email
+     * @return Subscription|null
+     */
+    public function findActiveOrPastDueByEmail(string $email): ?Subscription
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('subscription')
+            ->from(Subscription::class, 'subscription')
+            ->join('subscription.user', 'user')
+            ->where('user.email = :email')
+            ->andWhere('subscription.status IN (:statuses)')
+            ->setParameter('email', $email)
+            ->setParameter('statuses', [
+                SubscriptionStatus::ACTIVE->value,
+                SubscriptionStatus::PAST_DUE->value
+            ]);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
 }

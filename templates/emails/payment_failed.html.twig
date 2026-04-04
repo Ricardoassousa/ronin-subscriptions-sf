@@ -1,0 +1,67 @@
+{% extends 'emails/base_email.html.twig' %}
+
+{% block title %}Payment Failed Notification{% endblock %}
+
+{% block body %}
+    <h2 class="mb-3">Payment Failed</h2>
+
+    <p>
+        Hello 
+        <strong>
+            {{ subscription.user?.customerProfile?.firstName ?? 'Customer' }}
+        </strong>,
+    </p>
+
+    <p>
+        We wanted to inform you that your recent payment attempt for your subscription
+        could not be processed.
+    </p>
+
+    <h4 class="my-4">Subscription Details</h4>
+
+    <p>
+        Subscription No. <strong>#{{ subscription.id }}</strong><br>
+        Plan: <strong>{{ subscription.subscriptionPlan?.name ?? 'N/A' }}</strong><br>
+        Status: <strong>{{ subscription.status|capitalize }}</strong>
+    </p>
+
+    <h4 class="my-4">Billing Information</h4>
+
+    <p>
+        Amount Due:
+        <strong>
+            {{ subscription.getCurrentPrice()|number_format(2, '.', ',') }}
+            {{ subscription.currencySnapshot ?? 'USD' }}
+        </strong><br>
+
+        Billing Interval:
+        <strong>{{ (subscription.billingIntervalSnapshot ?? 'N/A')|capitalize }}</strong><br>
+
+        Next Billing Date:
+        <strong>
+            {{ subscription.nextBillingAt ? subscription.nextBillingAt|date('F j, Y') : 'N/A' }}
+        </strong>
+    </p>
+
+    {% if reason is defined %}
+        <p>
+            Reason for failure:
+            <strong>{{ reason }}</strong>
+        </p>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <p>
+        To avoid any interruption in your service, please update your payment information
+        as soon as possible.
+    </p>
+
+    <p>
+        If you have any questions or need assistance, our support team is here to help.
+    </p>
+
+    <p class="mt-4">
+        Thank you for being with us
+    </p>
+{% endblock %}

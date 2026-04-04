@@ -46,7 +46,6 @@ class EmailNotificationService
     public function sendSubscriptionConfirmation(Subscription $subscription): void
     {
         $user = $subscription->getUser();
-
         if (!$user || !$user->getEmail()) {
             $this->logger->warning(
                 'Missing user/email for subscription.',
@@ -92,7 +91,6 @@ class EmailNotificationService
     public function sendRenewalReminder(Subscription $subscription): void
     {
         $user = $subscription->getUser();
-
         if (!$user || !$user->getEmail()) {
             $this->logger->warning(
                 'Missing user/email for renewal reminder.',
@@ -119,6 +117,55 @@ class EmailNotificationService
         } catch (TransportExceptionInterface $e) {
             $this->logger->error(
                 'Failed to send renewal reminder email.',
+                [
+                    'subscription_id' => $subscription->getId(),
+                    'user_email' => $user->getEmail(),
+                    'exception' => $e->getMessage()
+                ]
+            );
+        }
+    }
+
+    /**
+     * Sends a payment failure notification email to the customer.
+     *
+     * This notifies the user that a payment attempt has failed
+     * and prompts them to update their payment method.
+     *
+     * @param Subscription $subscription
+     * @param string $reason
+     * @return void
+     */
+    public function sendPaymentFailure(Subscription $subscription, string $reason = 'Payment failed'): void
+    {
+        $user = $subscription->getUser();
+        if (!$user || !$user->getEmail()) {
+            $this->logger->warning(
+                'Missing user/email for payment failure notification.',
+                [
+                    'subscription_id' => $subscription->getId()
+                ]
+            );
+            return;
+        }
+
+        try {
+            $email = (new TemplatedEmail())
+                ->from('no-reply@mystore.com')
+                ->to($user->getEmail())
+                ->subject('Payment failed for your subscription')
+                ->htmlTemplate('emails/payment_failed.html.twig')
+                ->context([
+                    'subscription' => $subscription,
+                    'reason' => $reason,
+                    'nextBillingAt' => $subscription->getNextBillingAt()
+                ]);
+
+            $this->mailer->send($email);
+
+        } catch (TransportExceptionInterface $e) {
+            $this->logger->error(
+                'Failed to send payment failure email.',
                 [
                     'subscription_id' => $subscription->getId(),
                     'user_email' => $user->getEmail(),

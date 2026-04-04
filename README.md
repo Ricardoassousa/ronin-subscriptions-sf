@@ -39,7 +39,7 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Flash messages
 - [x] Subscription confirmation
 - [x] Upcoming renewal reminder (optional)
-- [ ] Payment failure notification (optional, high-impact)
+- [x] Payment failure notification (optional, high-impact)
 
 ### Permissions & Security
 - [ ] Admin-only sections
