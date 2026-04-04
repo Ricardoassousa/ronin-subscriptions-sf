@@ -30,16 +30,16 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Download invoices (PDF, optional, high-impact)
 
 ### Admin Dashboard
-- [ ] Dashboard overview
-- [ ] Display summary widgets with total subscriptions, active vs cancelled, and MRR
-- [ ] Recent activity feed
-- [ ] Charts and analytics (optional, high-impact)
+- [x] Dashboard overview
+- [x] Display summary widgets with total subscriptions, active vs cancelled, and MRR
+- [x] Recent activity feed
+- [x] Charts and analytics (optional, high-impact)
 
 ### Notifications
-- [ ] Flash messages
-- [ ] Subscription confirmation
-- [ ] Upcoming renewal reminder (optional)
-- [ ] Payment failure notification (optional, high-impact)
+- [x] Flash messages
+- [x] Subscription confirmation
+- [x] Upcoming renewal reminder (optional)
+- [x] Payment failure notification (optional, high-impact)
 
 ### Permissions & Security
 - [ ] Admin-only sections

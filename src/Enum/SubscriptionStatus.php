@@ -35,6 +35,11 @@ enum SubscriptionStatus: string
     case PAUSED = 'paused';
 
     /**
+     * Payment failed, but the subscription is still recoverable.
+     */
+    case PAST_DUE = 'past_due';
+
+    /**
      * Check if the subscription is currently active.
      *
      * @return bool True if status is ACTIVE
@@ -72,6 +77,14 @@ enum SubscriptionStatus: string
     public function isPaused(): bool
     {
         return $this === self::PAUSED;
+    }
+
+    /**
+     * Check if the subscription is past due (payment failed).
+     */
+    public function isPastDue(): bool
+    {
+        return $this === self::PAST_DUE;
     }
 
 }

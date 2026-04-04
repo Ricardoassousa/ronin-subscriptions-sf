@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Cart;
 use App\Entity\CustomerProfile;
+use App\Enum\ActivityLogType;
 use App\Form\CustomerProfileType;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,10 +55,6 @@ class CustomerProfileController extends AbstractController
     {
         try {
             $user = $this->getUser();
-            if (!$user) {
-                throw new AccessDeniedException('User must be logged in.');
-            }
-
             $logger->info(
                 'Customer profile page accessed.',
                 [
@@ -92,6 +90,15 @@ class CustomerProfileController extends AbstractController
             if ($form->isSubmitted() && $form->isValid()) {
                 $isNewProfile = $profile->getId() === null;
 
+                $activity = new ActivityLog();
+                $activity->setType($isNewProfile ? ActivityLogType::CUSTOMER_PROFILE_REGISTERED->value : ActivityLogType::PROFILE_UPDATED->value);
+                $activity->setDescription($isNewProfile ? 'New customer profile created.' : 'Customer profile updated.');
+                $activity->setRelatedType($isNewProfile ? ActivityLogType::CUSTOMER_PROFILE_REGISTERED->getRelatedType() : ActivityLogType::PROFILE_UPDATED->getRelatedType());
+                $activity->setRelatedId($profile->getId());
+                $activity->setUser($user);
+                $em->persist($activity);
+                $em->flush();
+
                 $profile->setUpdatedAt(new DateTimeImmutable());
                 $em->persist($profile);
                 $em->flush();
@@ -109,7 +116,7 @@ class CustomerProfileController extends AbstractController
                 );
 
                 $this->addFlash('success', 'Profile saved successfully!');
-                return $this->redirectToRoute('app_customer_profile');
+                return $this->redirectToRoute('subscription_index');
             }
 
             return $this->render('customer_profile/edit.html.twig', [

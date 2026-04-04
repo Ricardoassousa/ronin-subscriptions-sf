@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Entity\ActivityLog" table="activity_log" repository-class="App\Repository\ActivityLogRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="type" type="string" column="type" length="50" nullable="false"/>
+        <field name="description" type="string" column="description" length="255" nullable="false"/>
+        <field name="relatedId" type="integer" column="related_id" nullable="true"/>
+        <field name="relatedType" type="string" column="related_type" length="50" nullable="true"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+        <many-to-one field="user" target-entity="App\Entity\User" inversed-by="activityLogs">
+            <join-column name="user_id" referenced-column-name="id" nullable="true"/>
+        </many-to-one>
+    </entity>
+</doctrine-mapping>

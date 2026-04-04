@@ -2,6 +2,10 @@ homepage:
    path: /
    controller: App\Controller\DefaultController::homepage
 
+simulate_payment_failed:
+   path: /simulate/payment-failed
+   controller: App\Controller\SimulationController::simulatePaymentFailed
+
 user_routes:
    resource: "routes/user.yaml"
    type: "yaml"

@@ -2,8 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\ActivityLog;
 use App\Entity\SubscriptionPlan;
 use App\Entity\SubscriptionPlanSearch;
+use App\Enum\ActivityLogType;
 use App\Form\SubscriptionPlanType;
 use App\Form\SubscriptionPlanSearchType;
 use App\Service\SlugGenerator;
@@ -110,9 +112,7 @@ class SubscriptionPlanController extends AbstractController
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            dd($e);
-
-            $this->addFlash('error', 'An error occurred while loading the subscription plans list.');
+            $this->addFlash('danger', 'An error occurred while loading the subscription plans list.');
         }
 
     }
@@ -146,6 +146,15 @@ class SubscriptionPlanController extends AbstractController
                 $em->persist($subscriptionPlan);
                 $em->flush();
 
+                $activity = new ActivityLog();
+                $activity->setType(ActivityLogType::PLAN_CREATED->value);
+                $activity->setDescription('New subscription plan created: ' . $subscriptionPlan->getName());
+                $activity->setRelatedType(ActivityLogType::PLAN_CREATED->getRelatedType());
+                $activity->setRelatedId($subscriptionPlan->getId());
+                $activity->setUser($this->getUser());
+                $em->persist($activity);
+                $em->flush();
+
                 $logger->notice('Subscription plan created successfully.', [
                     'subscription_plan_id' => $subscriptionPlan->getId(),
                     'name' => $subscriptionPlan->getName(),
@@ -162,7 +171,7 @@ class SubscriptionPlanController extends AbstractController
                     'method' => __METHOD__
                 ]);
 
-                $this->addFlash('error', 'Failed to create subscription plan.');
+                $this->addFlash('danger', 'Failed to create subscription plan.');
             }
         }
 
@@ -222,6 +231,15 @@ class SubscriptionPlanController extends AbstractController
             try {
                 $em->flush();
 
+                $activity = new ActivityLog();
+                $activity->setType(ActivityLogType::PLAN_UPDATED->value);
+                $activity->setDescription('Subscription plan updated: ' . $subscriptionPlan->getName());
+                $activity->setRelatedType(ActivityLogType::PLAN_UPDATED->getRelatedType());
+                $activity->setRelatedId($subscriptionPlan->getId());
+                $activity->setUser($this->getUser());
+                $em->persist($activity);
+                $em->flush();
+
                 $logger->notice('Subscription plan updated successfully.', [
                     'subscription_plan_id' => $subscriptionPlan->getId(),
                     'controller' => __CLASS__,
@@ -237,7 +255,7 @@ class SubscriptionPlanController extends AbstractController
                     'controller' => __CLASS__,
                     'method' => __METHOD__
                 ]);
-                $this->addFlash('error', 'Failed to update subscription plan.');
+                $this->addFlash('danger', 'Failed to update subscription plan.');
             }
         }
 
@@ -274,6 +292,16 @@ class SubscriptionPlanController extends AbstractController
             $em->flush();
 
             $status = $subscriptionPlan->isActive() ? 'enabled' : 'disabled';
+
+            $activity = new ActivityLog();
+            $activity->setType(ActivityLogType::PLAN_TOGGLED->value);
+            $activity->setDescription("Subscription plan {$status}: " . $subscriptionPlan->getName());
+            $activity->setRelatedType(ActivityLogType::PLAN_TOGGLED->getRelatedType());
+            $activity->setRelatedId($subscriptionPlan->getId());
+            $activity->setUser($this->getUser());
+            $em->persist($activity);
+            $em->flush();
+
             $logger->notice("Subscription plan {$status}.", [
                 'subscription_plan_id' => $subscriptionPlan->getId(),
                 'controller' => __CLASS__,
@@ -288,7 +316,7 @@ class SubscriptionPlanController extends AbstractController
                 'controller' => __CLASS__,
                 'method' => __METHOD__
             ]);
-            $this->addFlash('error', 'Failed to update subscription plan status.');
+            $this->addFlash('danger', 'Failed to update subscription plan status.');
         }
 
         return $this->redirectToRoute('subscription_plan_index');

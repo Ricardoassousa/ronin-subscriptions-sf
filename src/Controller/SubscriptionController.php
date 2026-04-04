@@ -2,12 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\ActivityLog;
 use App\Entity\Payment;
 use App\Entity\Subscription;
 use App\Entity\SubscriptionPlan;
+use App\Enum\ActivityLogType;
 use App\Enum\PaymentStatus;
 use App\Enum\SubscriptionStatus;
 use App\Repository\SubscriptionRepository;
+use App\Service\CustomerProfileService;
+use App\Service\EmailNotificationService;
 use App\Service\SubscriptionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -23,27 +27,34 @@ use Throwable;
  *
  * Provides functionality for subscribing, cancelling, and listing subscriptions.
  */
-final class SubscriptionController extends AbstractController
+class SubscriptionController extends AbstractController
 {
     /**
      * Displays a list or dashboard of the user's subscriptions.
      *
      * @param Request $request
      * @param EntityManagerInterface $em
+     * @param CustomerProfileService $customerProfileService
      * @param PaginatorInterface $paginator
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator, LoggerInterface $logger): Response
+    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger): Response
     {
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         $logger->info(
             'User accessed subscriptions dashboard',
             [
-                'user_id' => $this->getUser()?->getId(),
+                'user_id' => $user?->getId(),
             ]
         );
 
-        $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $this->getUser()], ['startedAt' => 'DESC']);
+        $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user], ['startedAt' => 'DESC']);
         $query = $em->getRepository(SubscriptionPlan::class)
                     ->createQueryBuilder('p')
                     ->where('p.isActive = :active')
@@ -68,12 +79,19 @@ final class SubscriptionController extends AbstractController
      * @param int $planId The ID of the subscription plan
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
+     * @param EmailNotificationService $emailNotificationService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function subscribe(int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    public function subscribe(int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, EmailNotificationService $emailNotificationService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         if (!$user) {
             $logger->warning(
                 'Unauthorized subscription attempt',
@@ -94,7 +112,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription plan not found.');
+            $this->addFlash('danger', 'Subscription plan not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -120,6 +138,8 @@ final class SubscriptionController extends AbstractController
             $em->persist($payment);
             $em->flush();
 
+            $emailNotificationService->sendSubscriptionConfirmation($subscription);
+
             $this->addFlash('success', 'You have successfully subscribed!');
             return $this->redirectToRoute('payment_checkout', [
                 'paymentId' => $payment->getId()
@@ -133,7 +153,7 @@ final class SubscriptionController extends AbstractController
                     'exception' => $e->getMessage(),
                 ]
             );
-            $this->addFlash('error', 'Failed to subscribe. Please try again.');
+            $this->addFlash('danger', 'Failed to subscribe. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');
@@ -153,12 +173,17 @@ final class SubscriptionController extends AbstractController
      * @param int $planId The new subscription plan ID
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function changePlan(int $id, int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    public function changePlan(int $id, int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
 
         if (!$user) {
             $logger->warning(
@@ -186,7 +211,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription not found.');
+            $this->addFlash('danger', 'Subscription not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -200,7 +225,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription plan not found.');
+            $this->addFlash('danger', 'Subscription plan not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -229,7 +254,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Failed to change subscription plan. Please try again.');
+            $this->addFlash('danger', 'Failed to change subscription plan. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');
@@ -241,12 +266,18 @@ final class SubscriptionController extends AbstractController
      * @param int $id The ID of the subscription to cancel
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function cancel(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    public function cancel(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         if (!$user) {
             $logger->warning('Unauthorized cancel attempt', ['subscription_id' => $id]);
             return $this->redirectToRoute('app_login');
@@ -263,7 +294,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription not found.');
+            $this->addFlash('danger', 'Subscription not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -288,7 +319,7 @@ final class SubscriptionController extends AbstractController
                     'exception' => $e->getMessage()
                 ]
             );
-            $this->addFlash('error', 'Failed to cancel subscription. Please try again.');
+            $this->addFlash('danger', 'Failed to cancel subscription. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');
@@ -300,12 +331,18 @@ final class SubscriptionController extends AbstractController
      * @param int $id The ID of the subscription to pause
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function pause(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    public function pause(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         if (!$user) {
             $logger->warning(
                 'Unauthorized pause attempt',
@@ -327,7 +364,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription not found.');
+            $this->addFlash('danger', 'Subscription not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -352,7 +389,7 @@ final class SubscriptionController extends AbstractController
                     'exception' => $e->getMessage()
                 ]
             );
-            $this->addFlash('error', 'Failed to pause subscription. Please try again.');
+            $this->addFlash('danger', 'Failed to pause subscription. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');
@@ -364,12 +401,18 @@ final class SubscriptionController extends AbstractController
      * @param int $id The ID of the subscription to resume
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
+     * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
      * @return Response
      */
-    public function resume(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, LoggerInterface $logger): Response
+    public function resume(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
         if (!$user) {
             $logger->warning('Unauthorized resume attempt', ['subscription_id' => $id]);
             return $this->redirectToRoute('app_login');
@@ -386,7 +429,7 @@ final class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('error', 'Subscription not found.');
+            $this->addFlash('danger', 'Subscription not found.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -411,7 +454,7 @@ final class SubscriptionController extends AbstractController
                     'exception' => $e->getMessage()
                 ]
             );
-            $this->addFlash('error', 'Failed to resume subscription. Please try again.');
+            $this->addFlash('danger', 'Failed to resume subscription. Please try again.');
         }
 
         return $this->redirectToRoute('subscription_index');
