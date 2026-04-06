@@ -42,9 +42,9 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Payment failure notification (optional, high-impact)
 
 ### Permissions & Security
-- [ ] Admin-only sections
+- [x] Admin-only sections
 - [ ] User roles & permissions
-- [ ] Route protection using Symfony Security
+- [x] Route protection using Symfony Security
 - [ ] Activity logs / subscription tracking (optional)
 
 ### UX/UI
