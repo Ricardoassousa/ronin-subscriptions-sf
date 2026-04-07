@@ -43,7 +43,7 @@ The Subscription Management application implements the core and high-impact feat
 
 ### Permissions & Security
 - [x] Admin-only sections
-- [ ] User roles & permissions
+- [x] User roles & permissions
 - [x] Route protection using Symfony Security
 - [ ] Activity logs / subscription tracking (optional)
 

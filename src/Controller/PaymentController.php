@@ -2,10 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\ActivityLog;
 use App\Entity\Payment;
-use App\Enum\ActivityLogType;
-use App\Enum\PaymentStatus;
 use App\Service\CustomerProfileService;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;
@@ -18,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Throwable;
 
 class PaymentController extends AbstractController
@@ -30,9 +28,10 @@ class PaymentController extends AbstractController
      * @param CustomerProfileService $customerProfileService
      * @param PaginatorInterface $paginator
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger): Response
+    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -87,7 +86,7 @@ class PaymentController extends AbstractController
      * "reason": "Insufficient funds"
      * }
      */
-    public function process(Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger): JsonResponse
+    public function process(Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): JsonResponse
     {
         $paymentId = (int) $request->get('paymentId', 0);
 
@@ -125,7 +124,7 @@ class PaymentController extends AbstractController
                 ], 400);
             }
 
-            $result = $this->paymentService->process($amount);
+            $result = $paymentService->process($amount);
             $payment->setStatus($result['status']);
             $payment->setTransactionId($result['transaction_id']);
             $em->flush();
@@ -191,9 +190,10 @@ class PaymentController extends AbstractController
      * @param InvoiceService $invoiceService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function checkout(int $paymentId, Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function checkout(int $paymentId, Request $request, EntityManagerInterface $em, PaymentService $paymentService, InvoiceService $invoiceService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -205,6 +205,12 @@ class PaymentController extends AbstractController
         if (!$payment || $payment->getUser()?->getId() !== $user?->getId()) {
             $this->addFlash('danger', 'Payment not found or unauthorized.');
             return $this->redirectToRoute('subscription_index');
+        }
+
+        // Check permission with PaymentVoter
+        if (!$authChecker->isGranted('PAYMENT_VIEW', $payment)) {
+            $this->addFlash('danger', 'You are not authorized to view or process this payment.');
+            return $this->redirectToRoute('payments_history');
         }
 
         if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
@@ -271,9 +277,10 @@ class PaymentController extends AbstractController
      * @param EntityManagerInterface $em
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function success(int $paymentId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function success(int $paymentId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -294,6 +301,12 @@ class PaymentController extends AbstractController
                 );
                 $this->addFlash('danger', 'Payment not found or unauthorized.');
                 return $this->redirectToRoute('subscription_index');
+            }
+
+            // Check if the user has permission to view the payment
+            if (!$authChecker->isGranted('PAYMENT_VIEW', $payment)) {
+                $this->addFlash('danger', 'You are not authorized to view this payment.');
+                return $this->redirectToRoute('payments_history');
             }
 
             if ($payment->getStatus() !== PaymentStatus::SUCCESS->value) {

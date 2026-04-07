@@ -20,6 +20,7 @@ use Psr\Log\LogLevel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Throwable;
 
 /**
@@ -37,9 +38,10 @@ class SubscriptionController extends AbstractController
      * @param CustomerProfileService $customerProfileService
      * @param PaginatorInterface $paginator
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger): Response
+    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -82,9 +84,10 @@ class SubscriptionController extends AbstractController
      * @param EmailNotificationService $emailNotificationService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function subscribe(int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, EmailNotificationService $emailNotificationService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function subscribe(int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, EmailNotificationService $emailNotificationService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -100,6 +103,12 @@ class SubscriptionController extends AbstractController
                 ]
             );
             return $this->redirectToRoute('app_login');
+        }
+
+        // Check if the user has permission to subscribe
+        if (!$authChecker->isGranted('SUBSCRIBE_TO_PLAN', $user)) {
+            $this->addFlash('danger', 'You are not authorized to subscribe to this plan.');
+            return $this->redirectToRoute('subscription_index');
         }
 
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
@@ -150,7 +159,7 @@ class SubscriptionController extends AbstractController
                 'Subscription failed', [
                     'user_id' => $user->getId(),
                     'plan_id' => $planId,
-                    'exception' => $e->getMessage(),
+                    'exception' => $e->getMessage()
                 ]
             );
             $this->addFlash('danger', 'Failed to subscribe. Please try again.');
@@ -162,22 +171,16 @@ class SubscriptionController extends AbstractController
     /**
      * Change the subscription plan for a given subscription.
      *
-     * Ensures that:
-     * - The user is authenticated
-     * - The subscription exists and belongs to the current user
-     * - The new plan exists
-     *
-     * Delegates the business logic to the SubscriptionService.
-     *
      * @param int $id The subscription ID
      * @param int $planId The new subscription plan ID
      * @param EntityManagerInterface $em
      * @param SubscriptionService $subscriptionService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function changePlan(int $id, int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function changePlan(int $id, int $planId, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -212,6 +215,12 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        // Check permission with SubscriptionVoter (Permission to change the plan)
+        if (!$authChecker->isGranted('CHANGE_PLAN', $subscription)) {
+            $this->addFlash('danger', 'You are not authorized to change this subscription plan.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -268,9 +277,10 @@ class SubscriptionController extends AbstractController
      * @param SubscriptionService $subscriptionService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function cancel(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function cancel(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -295,6 +305,12 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        // Check permission with SubscriptionVoter (Permission to cancel the subscription)
+        if (!$authChecker->isGranted('CANCEL_SUBSCRIPTION', $subscription)) {
+            $this->addFlash('danger', 'You are not authorized to cancel this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -333,9 +349,10 @@ class SubscriptionController extends AbstractController
      * @param SubscriptionService $subscriptionService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function pause(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function pause(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -365,6 +382,12 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        // Check permission with SubscriptionVoter (Permission to pause the subscription)
+        if (!$authChecker->isGranted('PAUSE_SUBSCRIPTION', $subscription)) {
+            $this->addFlash('danger', 'You are not authorized to pause this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -403,9 +426,10 @@ class SubscriptionController extends AbstractController
      * @param SubscriptionService $subscriptionService
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function resume(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function resume(int $id, EntityManagerInterface $em, SubscriptionService $subscriptionService, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -430,6 +454,12 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        // Check permission with SubscriptionVoter (Permission to resume the subscription)
+        if (!$authChecker->isGranted('RESUME_SUBSCRIPTION', $subscription)) {
+            $this->addFlash('danger', 'You are not authorized to resume this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
 

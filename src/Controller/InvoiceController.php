@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\ActivityLog;
 use App\Entity\Invoice;
-use App\Enum\ActivityLogType;
 use App\Service\CustomerProfileService;
 use Doctrine\ORM\EntityManagerInterface;
 use Mpdf\Mpdf;
@@ -15,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use RuntimeException;
 
 class InvoiceController extends AbstractController
@@ -29,14 +28,16 @@ class InvoiceController extends AbstractController
      * @param EntityManagerInterface $em
      * @param CustomerProfileService $customerProfileService
      * @param LoggerInterface $logger
+     * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      * @throws NotFoundHttpException
      * @throws MpdfException
      * @throws RuntimeException
      */
-    public function downloadInvoicePdf(int $invoiceId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger): Response
+    public function downloadInvoicePdf(int $invoiceId, EntityManagerInterface $em, CustomerProfileService $customerProfileService, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
+
         if (!$customerProfileService->hasCustomerProfile($user)) {
             $this->addFlash('danger', 'Please complete your customer profile before subscribing.');
             return $this->redirectToRoute('app_customer_profile');
@@ -58,6 +59,12 @@ class InvoiceController extends AbstractController
                 ]
             );
             throw $this->createNotFoundException('Invoice not found');
+        }
+
+        // Check if the user has permission to download the invoice
+        if (!$authChecker->isGranted('INVOICE_VIEW', $invoice)) {
+            $this->addFlash('danger', 'You are not authorized to view this invoice.');
+            return $this->redirectToRoute('payments_history');
         }
 
         try {
