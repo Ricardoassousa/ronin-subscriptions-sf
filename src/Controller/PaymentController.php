@@ -31,7 +31,7 @@ class PaymentController extends AbstractController
      * @param AuthorizationCheckerInterface $authChecker
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
+    public function history(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger, AuthorizationCheckerInterface $authChecker): Response
     {
         $user = $this->getUser();
         if (!$customerProfileService->hasCustomerProfile($user)) {
@@ -42,16 +42,15 @@ class PaymentController extends AbstractController
         $logger->info(
             'User accessed payment history.',
             [
-                'user_id' => $user?->getId()
+                'user_id' => $user?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
             ]
         );
 
-        $query = $em->getRepository(Payment::class)
-                    ->createQueryBuilder('p')
-                    ->where('p.user = :user')
-                    ->setParameter('user', $user)
-                    ->orderBy('p.createdAt', 'DESC')
-                    ->getQuery();
+        $query = $em->getRepository(Payment::class)->findPaymentsByUser($user);
 
         $pagination = $paginator->paginate(
             $query,
@@ -139,8 +138,12 @@ class PaymentController extends AbstractController
                     $logger->error(
                         'Failed to generate invoice for successful payment.',
                         [
+                            'payment_id' => $payment->getId(),
                             'exception' => $e,
-                            'payment_id' => $payment->getId()
+                            'source' => [
+                                'method' => __METHOD__,
+                                'line' => __LINE__
+                            ]
                         ]
                     );
                 }
@@ -162,8 +165,12 @@ class PaymentController extends AbstractController
             $logger->error(
                 'Unexpected error processing payment.',
                 [
+                    'payment_id' => $paymentId,
                     'exception' => $e,
-                    'payment_id' => $paymentId
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -236,8 +243,12 @@ class PaymentController extends AbstractController
                         $this->logger->error(
                             'Failed to generate invoice for successful payment.',
                             [
+                                'payment_id' => $payment->getId(),
                                 'exception' => $e,
-                                'payment_id' => $payment->getId()
+                                'source' => [
+                                    'method' => __METHOD__,
+                                    'line' => __LINE__
+                                ]
                             ]
                         );
                     }
@@ -252,8 +263,12 @@ class PaymentController extends AbstractController
                 $logger->error(
                     'Payment processing error.',
                     [
+                        'payment_id' => $payment->getId(),
                         'exception' => $e,
-                        'payment_id' => $payment->getId()
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
                     ]
                 );
                 $this->addFlash('danger', 'Unexpected error occurred during payment.');
@@ -296,7 +311,11 @@ class PaymentController extends AbstractController
                     'Payment not found or unauthorized access',
                     [
                         'user_id' => $user?->getId(),
-                        'payment_id' => $paymentId
+                        'payment_id' => $paymentId,
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
                     ]
                 );
                 $this->addFlash('danger', 'Payment not found or unauthorized.');
@@ -315,7 +334,11 @@ class PaymentController extends AbstractController
                     [
                         'user_id' => $user?->getId(),
                         'payment_id' => $paymentId,
-                        'status' => $payment->getStatus()
+                        'status' => $payment->getStatus(),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
                     ]
                 );
                 $this->addFlash('danger', 'Payment was not successful.');
@@ -329,7 +352,11 @@ class PaymentController extends AbstractController
                 [
                     'user_id' => $user?->getId(),
                     'payment_id' => $paymentId,
-                    'invoice_number' => $invoiceNumber
+                    'invoice_number' => $invoiceNumber,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -342,8 +369,12 @@ class PaymentController extends AbstractController
             $logger->error(
                 'Unexpected error accessing payment success page',
                 [
+                    'payment_id' => $paymentId,
                     'exception' => $e,
-                    'payment_id' => $paymentId
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

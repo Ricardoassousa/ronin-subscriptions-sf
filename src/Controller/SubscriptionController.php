@@ -53,15 +53,15 @@ class SubscriptionController extends AbstractController
             'User accessed subscriptions dashboard',
             [
                 'user_id' => $user?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
             ]
         );
 
         $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user], ['startedAt' => 'DESC']);
-        $query = $em->getRepository(SubscriptionPlan::class)
-                    ->createQueryBuilder('p')
-                    ->where('p.isActive = :active')
-                    ->setParameter('active', true)
-                    ->orderBy('p.id', 'ASC');
+        $query = $em->getRepository(SubscriptionPlan::class)->findActiveSubscriptionPlans();
 
         $pagination = $paginator->paginate(
             $query,
@@ -72,6 +72,48 @@ class SubscriptionController extends AbstractController
         return $this->render('subscription/index.html.twig', [
             'pagination' => $pagination,
             'currentSubscription' => $currentSubscription
+        ]);
+    }
+
+    /**
+     * Displays the subscription history for the currently logged-in user.
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $em
+     * @param CustomerProfileService $customerProfileService
+     * @param PaginatorInterface $paginator
+     * @param LoggerInterface $logger
+     * @return Response
+     */
+    public function history(Request $request, EntityManagerInterface $em, CustomerProfileService $customerProfileService, PaginatorInterface $paginator, LoggerInterface $logger): Response
+    {
+        $user = $this->getUser();
+        if (!$customerProfileService->hasCustomerProfile($user)) {
+            $this->addFlash('danger', 'Please complete your customer profile before viewing subscription history.');
+            return $this->redirectToRoute('app_customer_profile');
+        }
+
+        $logger->info(
+            'User accessed subscription history.',
+            [
+                'user_id' => $user?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
+
+        $query = $em->getRepository(Subscription::class)->findSubscriptionsByUser($user);
+
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        return $this->render('subscription/history.html.twig', [
+            'pagination' => $pagination
         ]);
     }
 
@@ -99,7 +141,11 @@ class SubscriptionController extends AbstractController
             $logger->warning(
                 'Unauthorized subscription attempt',
                 [
-                    'plan_id' => $planId
+                    'plan_id' => $planId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return $this->redirectToRoute('app_login');
@@ -117,7 +163,11 @@ class SubscriptionController extends AbstractController
             $logger->error(
                 'Subscription plan not found',
                 [
-                    'plan_id' => $planId
+                    'plan_id' => $planId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -134,6 +184,10 @@ class SubscriptionController extends AbstractController
                     'user_id' => $user->getId(),
                     'subscription_id' => $subscription->getId(),
                     'plan_id' => $planId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -156,10 +210,15 @@ class SubscriptionController extends AbstractController
 
         } catch (Throwable $e) {
             $logger->error(
-                'Subscription failed', [
+                'Subscription failed',
+                [
                     'user_id' => $user->getId(),
                     'plan_id' => $planId,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('danger', 'Failed to subscribe. Please try again.');
@@ -193,7 +252,11 @@ class SubscriptionController extends AbstractController
                 'Unauthorized plan change attempt',
                 [
                     'subscription_id' => $id,
-                    'plan_id' => $planId
+                    'plan_id' => $planId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -210,7 +273,11 @@ class SubscriptionController extends AbstractController
                 'Subscription not found or does not belong to user',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $id
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -230,7 +297,11 @@ class SubscriptionController extends AbstractController
             $logger->error(
                 'Subscription plan not found',
                 [
-                    'plan_id' => $planId
+                    'plan_id' => $planId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -246,7 +317,11 @@ class SubscriptionController extends AbstractController
                 [
                     'user_id' => $user->getId(),
                     'subscription_id' => $subscription->getId(),
-                    'new_plan_id' => $newPlan->getId()
+                    'new_plan_id' => $newPlan->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -259,7 +334,11 @@ class SubscriptionController extends AbstractController
                     'user_id' => $user->getId(),
                     'subscription_id' => $subscription->getId(),
                     'plan_id' => $planId,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -289,7 +368,16 @@ class SubscriptionController extends AbstractController
         }
 
         if (!$user) {
-            $logger->warning('Unauthorized cancel attempt', ['subscription_id' => $id]);
+            $logger->warning(
+                'Unauthorized cancel attempt',
+                [
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             return $this->redirectToRoute('app_login');
         }
 
@@ -300,7 +388,11 @@ class SubscriptionController extends AbstractController
                 'Subscription not found or does not belong to user',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $id
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -321,7 +413,11 @@ class SubscriptionController extends AbstractController
                 'Subscription cancelled',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('success', 'Subscription cancelled successfully!');
@@ -332,7 +428,11 @@ class SubscriptionController extends AbstractController
                 [
                     'user_id' => $user->getId(),
                     'subscription_id' => $id,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('danger', 'Failed to cancel subscription. Please try again.');
@@ -364,7 +464,11 @@ class SubscriptionController extends AbstractController
             $logger->warning(
                 'Unauthorized pause attempt',
                 [
-                    'subscription_id' => $id
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return $this->redirectToRoute('app_login');
@@ -377,7 +481,11 @@ class SubscriptionController extends AbstractController
                 'Subscription not found or does not belong to user',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $id
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -398,7 +506,11 @@ class SubscriptionController extends AbstractController
                 'Subscription paused successfully',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('success', 'Subscription paused successfully!');
@@ -409,7 +521,11 @@ class SubscriptionController extends AbstractController
                 [
                     'user_id' => $user->getId(),
                     'subscription_id' => $id,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('danger', 'Failed to pause subscription. Please try again.');
@@ -438,7 +554,16 @@ class SubscriptionController extends AbstractController
         }
 
         if (!$user) {
-            $logger->warning('Unauthorized resume attempt', ['subscription_id' => $id]);
+            $logger->warning(
+                'Unauthorized resume attempt',
+                [
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             return $this->redirectToRoute('app_login');
         }
 
@@ -449,7 +574,11 @@ class SubscriptionController extends AbstractController
                 'Subscription not found or does not belong to user',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $id
+                    'subscription_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -470,7 +599,11 @@ class SubscriptionController extends AbstractController
                 'Subscription resumed successfully',
                 [
                     'user_id' => $user->getId(),
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('success', 'Subscription resumed successfully!');
@@ -481,7 +614,11 @@ class SubscriptionController extends AbstractController
                 [
                     'user_id' => $user->getId(),
                     'subscription_id' => $id,
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             $this->addFlash('danger', 'Failed to resume subscription. Please try again.');

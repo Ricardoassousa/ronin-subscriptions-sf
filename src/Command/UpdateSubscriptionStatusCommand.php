@@ -107,7 +107,11 @@ class UpdateSubscriptionStatusCommand extends Command
                         'Subscription expired automatically',
                         [
                             'subscription_id' => $subscription->getId(),
-                            'next_billing_at' => $subscription->getNextBillingAt()->format('Y-m-d H:i:s')
+                            'next_billing_at' => $subscription->getNextBillingAt()->format('Y-m-d H:i:s'),
+                            'source' => [
+                                'method' => __METHOD__,
+                                'line' => __LINE__
+                            ]
                         ]
                     );
                 }
@@ -123,6 +127,10 @@ class UpdateSubscriptionStatusCommand extends Command
                 'Failed to update subscription statuses',
                 [
                     'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

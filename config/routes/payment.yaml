@@ -1,6 +1,6 @@
 payments_history:
     path: /history
-    controller: App\Controller\PaymentController::index
+    controller: App\Controller\PaymentController::history
     methods: [GET]
 
 payment_checkout:

@@ -83,7 +83,11 @@ class SecurityController extends AbstractController
             $logger->info(
                 'Unexpected error while rendering login page.',
                 [
-                    'exception' => $e
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -127,7 +131,11 @@ class SecurityController extends AbstractController
             $logger->info(
                 'Unexpected error during logout.',
                 [
-                    'exception' => $e
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

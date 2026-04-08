@@ -89,7 +89,11 @@ class RegistrationController extends AbstractController
                             'Unique constraint violation on user registration.',
                             [
                                 'email' => $email,
-                                'exception' => $e
+                                'exception' => $e,
+                                'source' => [
+                                    'method' => __METHOD__,
+                                    'line' => __LINE__
+                                ]
                             ]
                         );
                         $form->get('email')->addError(new FormError('This email is already registered.'));
@@ -124,7 +128,11 @@ class RegistrationController extends AbstractController
             $logger->error(
                 'Unexpected error during user registration.',
                 [
-                    'exception' => $e
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

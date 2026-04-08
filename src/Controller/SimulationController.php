@@ -40,7 +40,11 @@ class SimulationController
             $logger->warning(
                 'Simulation aborted: user not found.',
                 [
-                    'email' => $email
+                    'email' => $email,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -53,7 +57,11 @@ class SimulationController
         $logger->info(
             'Simulating payment failure.',
             [
-                'email' => $email
+                'email' => $email,
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
             ]
         );
 

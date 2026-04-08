@@ -83,7 +83,15 @@ class SendRenewalRemindersCommand extends Command
             $subscriptions = $this->em->getRepository(Subscription::class)->findRenewingSoon($date);
 
             if (empty($subscriptions)) {
-                $this->logger->info('No subscriptions found for renewal reminders.');
+                $this->logger->info(
+                    'No subscriptions found for renewal reminders.',
+                    [
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
                 return Command::SUCCESS;
             }
 
@@ -96,6 +104,10 @@ class SendRenewalRemindersCommand extends Command
                         'subscription_id' => $subscription->getId(),
                         'user_id' => $subscription->getUser()?->getId(),
                         'next_billing_at' => $subscription->getNextBillingAt()?->format(DATE_ATOM),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
                     ]
                 );
             }
@@ -107,6 +119,10 @@ class SendRenewalRemindersCommand extends Command
                 'Failed to send renewal reminders',
                 [
                     'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

@@ -46,7 +46,11 @@ class InvoiceController extends AbstractController
         $logger->info(
             'Attempt to download invoice PDF.',
             [
-                'invoice_id' => $invoiceId
+                'invoice_id' => $invoiceId,
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
             ]
         );
 
@@ -55,7 +59,11 @@ class InvoiceController extends AbstractController
             $logger->error(
                 'Invoice not found.',
                 [
-                    'invoice_id' => $invoiceId
+                    'invoice_id' => $invoiceId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             throw $this->createNotFoundException('Invoice not found');
@@ -82,7 +90,11 @@ class InvoiceController extends AbstractController
             $logger->info(
                 'Generating invoice PDF for download.',
                 [
-                    'filename' => $filename
+                    'filename' => $filename,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -92,8 +104,12 @@ class InvoiceController extends AbstractController
             $logger->error(
                 'Error generating invoice PDF with mPDF.',
                 [
+                    'invoice_id' => $invoiceId,
                     'exception' => $e,
-                    'invoice_id' => $invoiceId
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             throw new RuntimeException('Error generating PDF. Please try again later.');
