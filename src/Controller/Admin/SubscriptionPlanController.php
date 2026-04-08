@@ -95,12 +95,17 @@ class SubscriptionPlanController extends AbstractController
                 10
             );
 
-            $logger->info('Admin accessed subscription plan list.', [
-                'plans_count' => count($pagination),
-                'filters' => $searchParams,
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->info(
+                'Admin accessed subscription plan list.',
+                [
+                    'plans_count' => count($pagination),
+                    'filters' => $searchParams,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
 
             return $this->render('admin/subscription_plan/index.html.twig', [
                 'pagination' => $pagination,
@@ -108,10 +113,17 @@ class SubscriptionPlanController extends AbstractController
             ]);
 
         } catch (Throwable $e) {
-            $logger->error('Error accessing subscription plan list.', [
-                'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            $logger->error(
+                'Error accessing subscription plan list.',
+                [
+                    'exception' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             $this->addFlash('danger', 'An error occurred while loading the subscription plans list.');
         }
 
@@ -133,10 +145,15 @@ class SubscriptionPlanController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $logger->info('Subscription plan creation form submitted.', [
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->info(
+                'Subscription plan creation form submitted.',
+                [
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -155,21 +172,31 @@ class SubscriptionPlanController extends AbstractController
                 $em->persist($activity);
                 $em->flush();
 
-                $logger->notice('Subscription plan created successfully.', [
-                    'subscription_plan_id' => $subscriptionPlan->getId(),
-                    'name' => $subscriptionPlan->getName(),
-                    'controller' => __CLASS__,
-                    'method' => __METHOD__
-                ]);
+                $logger->notice(
+                    'Subscription plan created successfully.',
+                    [
+                        'subscription_plan_id' => $subscriptionPlan->getId(),
+                        'name' => $subscriptionPlan->getName(),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
 
                 $this->addFlash('success', 'Subscription plan created successfully!');
                 return $this->redirectToRoute('subscription_plan_index');
             } catch (Throwable $e) {
-                $logger->error('Failed to create subscription plan.', [
-                    'exception' => $e,
-                    'controller' => __CLASS__,
-                    'method' => __METHOD__
-                ]);
+                $logger->error(
+                    'Failed to create subscription plan.',
+                    [
+                        'exception' => $e,
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
 
                 $this->addFlash('danger', 'Failed to create subscription plan.');
             }
@@ -195,11 +222,16 @@ class SubscriptionPlanController extends AbstractController
     {
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($id);
         if (!$subscriptionPlan) {
-            $logger->warning('Subscription plan not found for edit.', [
-                'subscription_plan_id' => $id,
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->warning(
+                'Subscription plan not found for edit.',
+                [
+                    'subscription_plan_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw $this->createNotFoundException('Subscription plan not found');
         }
 
@@ -207,22 +239,34 @@ class SubscriptionPlanController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $logger->info('Subscription plan edit form submitted.', [
-                'subscription_plan_id' => $subscriptionPlan->getId(),
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->info(
+                'Subscription plan edit form submitted.',
+                [
+                    'subscription_plan_id' => $subscriptionPlan->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $logger->info('Updating subscription plan fields.', [
-                'subscription_plan_id' => $subscriptionPlan->getId(),
-                'name' => $subscriptionPlan->getName(),
-                'price' => $subscriptionPlan->getPrice(),
-                'currency' => $subscriptionPlan->getCurrency(),
-                'billing_interval' => $subscriptionPlan->getBillingInterval(),
-                'features' => $subscriptionPlan->getFeatures()
-            ]);
+            $logger->info(
+                'Updating subscription plan fields.',
+                [
+                    'subscription_plan_id' => $subscriptionPlan->getId(),
+                    'name' => $subscriptionPlan->getName(),
+                    'price' => $subscriptionPlan->getPrice(),
+                    'currency' => $subscriptionPlan->getCurrency(),
+                    'billing_interval' => $subscriptionPlan->getBillingInterval(),
+                    'features' => $subscriptionPlan->getFeatures(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
 
             $oldSlug = $subscriptionPlan->getSlug();
             $newSlug = $slugGenerator->generate($subscriptionPlan->getName(), SubscriptionPlan::class);
@@ -240,21 +284,30 @@ class SubscriptionPlanController extends AbstractController
                 $em->persist($activity);
                 $em->flush();
 
-                $logger->notice('Subscription plan updated successfully.', [
-                    'subscription_plan_id' => $subscriptionPlan->getId(),
-                    'controller' => __CLASS__,
-                    'method' => __METHOD__
-                ]);
+                $logger->notice(
+                    'Subscription plan updated successfully.',
+                    [
+                        'subscription_plan_id' => $subscriptionPlan->getId(),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
 
                 $this->addFlash('success', 'Plan updated successfully!');
                 return $this->redirectToRoute('subscription_plan_index');
             } catch (Throwable $e) {
-                $logger->error('Failed to update subscription plan.', [
-                    'subscription_plan_id' => $subscriptionPlan->getId(),
-                    'exception' => $e,
-                    'controller' => __CLASS__,
-                    'method' => __METHOD__
-                ]);
+                $logger->error(
+                    'Failed to update subscription plan.', [
+                        'subscription_plan_id' => $subscriptionPlan->getId(),
+                        'exception' => $e,
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
                 $this->addFlash('danger', 'Failed to update subscription plan.');
             }
         }
@@ -277,11 +330,16 @@ class SubscriptionPlanController extends AbstractController
     {
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($id);
         if (!$subscriptionPlan) {
-            $logger->warning('Subscription plan not found.', [
-                'subscription_plan_id' => $id,
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->warning(
+                'Subscription plan not found.',
+                [
+                    'subscription_plan_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw $this->createNotFoundException('Subscription plan not found');
         }
 
@@ -302,20 +360,28 @@ class SubscriptionPlanController extends AbstractController
             $em->persist($activity);
             $em->flush();
 
-            $logger->notice("Subscription plan {$status}.", [
-                'subscription_plan_id' => $subscriptionPlan->getId(),
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->notice(
+                "Subscription plan {$status}.", [
+                    'subscription_plan_id' => $subscriptionPlan->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
 
             $this->addFlash('success', "Subscription plan {$status} successfully!");
         } catch (Throwable $e) {
-            $logger->error('Failed to toggle subscription plan.', [
-                'subscription_plan_id' => $subscriptionPlan->getId(),
-                'exception' => $e,
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->error(
+                'Failed to toggle subscription plan.', [
+                    'subscription_plan_id' => $subscriptionPlan->getId(),
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             $this->addFlash('danger', 'Failed to update subscription plan status.');
         }
 
@@ -335,25 +401,33 @@ class SubscriptionPlanController extends AbstractController
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($id);
 
         if (!$subscriptionPlan) {
-            $logger->warning('Subscription plan not found for show.', [
-                'subscription_plan_id' => $id,
-                'controller' => __CLASS__,
-                'method' => __METHOD__
-            ]);
+            $logger->warning(
+                'Subscription plan not found for show.', [
+                    'subscription_plan_id' => $id,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
 
             throw $this->createNotFoundException('Subscription plan not found.');
         }
 
-        $logger->info('Displaying subscription plan details.', [
-            'subscription_plan_id' => $subscriptionPlan->getId(),
-            'name' => $subscriptionPlan->getName(),
-            'is_active' => $subscriptionPlan->isActive(),
-            'price' => $subscriptionPlan->getPrice(),
-            'billing_interval' => $subscriptionPlan->getBillingInterval(),
-            'controller' => __CLASS__,
-            'method' => __METHOD__
-        ]);
-
+        $logger->info(
+            'Displaying subscription plan details.',
+            [
+                'subscription_plan_id' => $subscriptionPlan->getId(),
+                'name' => $subscriptionPlan->getName(),
+                'is_active' => $subscriptionPlan->isActive(),
+                'price' => $subscriptionPlan->getPrice(),
+                'billing_interval' => $subscriptionPlan->getBillingInterval(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
 
         return $this->render('admin/subscription_plan/show.html.twig', [
             'subscriptionPlan' => $subscriptionPlan

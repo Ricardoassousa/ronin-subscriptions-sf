@@ -43,15 +43,15 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        # Backoffice (admin)
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
         # Frontoffice (auth user)
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/customer-profile, roles: ROLE_USER }
         - { path: ^/subscription, roles: ROLE_USER }
         - { path: ^/payments, roles: ROLE_USER }
         - { path: ^/invoices, roles: ROLE_USER }
-
-        # Backoffice (admin)
-        - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:
     security:

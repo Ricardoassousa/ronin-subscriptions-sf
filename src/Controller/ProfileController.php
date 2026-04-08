@@ -85,7 +85,8 @@ class ProfileController extends AbstractController
                             'method' => __METHOD__,
                             'line' => __LINE__
                         ]
-                ]);
+                    ]
+                );
 
                 $this->addFlash('success', 'Profile updated successfully!');
                 return $this->redirectToRoute('app_profile');
@@ -100,7 +101,11 @@ class ProfileController extends AbstractController
                 'Unexpected error during profile edit.',
                 [
                     'user_id' => $user?->getId(),
-                    'exception' => $e
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 

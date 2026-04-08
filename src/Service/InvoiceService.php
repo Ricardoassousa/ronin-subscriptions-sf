@@ -55,7 +55,11 @@ class InvoiceService
                 'Invoice generation skipped: payment not successful',
                 [
                     'paymentId' => $payment->getId(),
-                    'status' => $payment->getStatus()
+                    'status' => $payment->getStatus(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -67,7 +71,11 @@ class InvoiceService
                 'Invoice already exists for payment',
                 [
                     'paymentId' => $payment->getId(),
-                    'invoiceId' => $payment->getInvoice()?->getId()
+                    'invoiceId' => $payment->getInvoice()?->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -97,7 +105,11 @@ class InvoiceService
                 'Failed to persist invoice to database.',
                 [
                     'exception' => $e,
-                    'paymentId' => $payment->getId()
+                    'paymentId' => $payment->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             throw new ORMException('Invoice persistence failed.');
@@ -108,7 +120,11 @@ class InvoiceService
             [
                 'paymentId' => $payment->getId(),
                 'invoiceId' => $invoice->getId(),
-                'invoiceNumber' => $invoice->getInvoiceNumber()
+                'invoiceNumber' => $invoice->getInvoiceNumber(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
             ]
         );
 

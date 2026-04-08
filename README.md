@@ -7,7 +7,7 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Login / Logout
 - [x] Edit profile
 - [x] Role management (admin)
-- [ ] View subscription history (high-impact, optional)
+- [x] View subscription history (high-impact, optional)
 
 ### Subscription Plan Management
 - [x] Create / Edit / Delete subscription plan
@@ -42,10 +42,10 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Payment failure notification (optional, high-impact)
 
 ### Permissions & Security
-- [ ] Admin-only sections
-- [ ] User roles & permissions
-- [ ] Route protection using Symfony Security
-- [ ] Activity logs / subscription tracking (optional)
+- [x] Admin-only sections
+- [x] User roles & permissions
+- [x] Route protection using Symfony Security
+- [x] Activity logs / subscription tracking (optional)
 
 ### UX/UI
 - [ ] Responsive layout
