@@ -3,61 +3,88 @@
 {% block title %}Customer Profile{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 700px; background-color:#ffffff;">
 
-        <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
-            Customer Profile for
-            <span style="color:#6f42c1; font-weight:600; font-style:italic;">
-                {{ user.email ?? '' }}
-            </span>
-        </h2>
+{# ===========================
+   Page Header
+   =========================== #}
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">
+        Customer Profile
+    </h2>
 
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">{{ message }}</div>
-            {% endfor %}
-        {% endfor %}
-
-        {{ form_start(form) }}
-
-        {% for field in form %}
-            <div class="mb-3">
-                {% if field.vars.name != '_token' %}
-                    {{ form_label(field) }}
-                {% endif %}
-                {{ form_widget(field, {
-                    'attr': {
-                        'class': (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') 
-                            ~ (field.vars.errors|length ? ' is-invalid' : '')
-                    }
-                }) }}
-                {% for error in field.vars.errors %}
-                    <div class="invalid-feedback">{{ error.message }}</div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-
-        <div class="d-grid gap-2 mt-3">
-            <button type="submit" class="btn fw-semibold"
-                    style="
-                        background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%);
-                        border:none;
-                        color:#fff;
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                        transition: transform 0.1s, box-shadow 0.2s;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                Save Changes
-            </button>
-        </div>
-
-        {{ form_end(form) }}
+    <div class="text-muted small">
+        {{ user.email ?? '' }}
     </div>
 </div>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
+{# ===========================
+   Flash Messages
+   =========================== #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+{# ===========================
+   Profile Form
+   =========================== #}
+<div class="p-4 rounded-4"
+     style="background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.4);">
+
+    {{ form_start(form) }}
+
+    <div class="row g-3">
+
+        {% for field in form %}
+            {% if field.vars.name != '_token' %}
+
+                <div class="col-12">
+
+                    {# Label #}
+                    <label class="form-label small text-muted">
+                        {{ form_label(field) }}
+                    </label>
+
+                    {# Input #}
+                    {{ form_widget(field, {
+                        'attr': {
+                            'class':
+                                (field.vars.block_prefixes[1] == 'choice'
+                                    ? 'form-select'
+                                    : 'form-control')
+                                ~ (field.vars.errors|length ? ' is-invalid' : '')
+                        }
+                    }) }}
+
+                    {# Errors #}
+                    {% for error in field.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ error.message }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+        {% endfor %}
+
+    </div>
+
+    {# Submit #}
+    <div class="mt-4 d-flex justify-content-end">
+
+        <button type="submit" class="btn btn-custom px-4">
+            <i class="bi bi-check-lg me-1"></i>
+            Save Changes
+        </button>
+
+    </div>
+
+    {{ form_end(form) }}
+
+</div>
+
 {% endblock %}

@@ -3,211 +3,248 @@
 {% block title %}Subscription Plans{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 1000px; background-color:#ffffff;">
 
-        <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
-            Subscription Plans
-        </h2>
+{# ===========================
+   Page Title
+   =========================== #}
+<h2 class="mb-4 fw-bold">
+    Subscription Plans
+</h2>
 
-        {# Flash messages #}
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">{{ message }}</div>
-            {% endfor %}
-        {% endfor %}
+{# ===========================
+   Flash Messages
+   =========================== #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
 
-        {# ===========================
-           Search / Filter Form
-           =========================== #}
-        <div class="card shadow-sm p-4 mb-4">
-            {{ form_start(searchForm) }}
+{# ===========================
+   Search & Filters
+   =========================== #}
+<div class="mb-4 p-4 rounded-4"
+     style="background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.4);">
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    {{ form_label(searchForm.search) }}
-                    {{ form_widget(searchForm.search, {'attr': {'class': 'form-control', 'placeholder': 'Name or slug'}}) }}
-                </div>
+    {{ form_start(searchForm) }}
 
-                <div class="col-md-6">
-                    {{ form_label(searchForm.billingInterval) }}
-                    {{ form_widget(searchForm.billingInterval, {'attr': {'class': 'form-select'}}) }}
-                </div>
+    {# Main search row #}
+    <div class="row g-3 align-items-end">
+
+        {# Search input #}
+        <div class="col-lg-5">
+            <label class="form-label small text-muted">Search</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                {{ form_widget(searchForm.search, {
+                    'attr': {
+                        'class': 'form-control border-0',
+                        'placeholder': 'Name or slug...'
+                    }
+                }) }}
             </div>
-
-            <div class="row g-3 mt-3">
-                <div class="col-md-3">
-                    {{ form_label(searchForm.minPrice) }}
-                    {{ form_widget(searchForm.minPrice, {'attr': {'class': 'form-control', 'placeholder': 'Min Price'}}) }}
-                </div>
-
-                <div class="col-md-3">
-                    {{ form_label(searchForm.maxPrice) }}
-                    {{ form_widget(searchForm.maxPrice, {'attr': {'class': 'form-control', 'placeholder': 'Max Price'}}) }}
-                </div>
-
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-check">
-                        {{ form_widget(searchForm.isFeatured, {'attr': {'class': 'form-check-input'}}) }}
-                        {{ form_label(searchForm.isFeatured, null, {'label_attr': {'class': 'form-check-label'}}) }}
-                    </div>
-                </div>
-
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-check">
-                        {{ form_widget(searchForm.isActive, {'attr': {'class': 'form-check-input'}}) }}
-                        {{ form_label(searchForm.isActive, null, {'label_attr': {'class': 'form-check-label'}}) }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-3 mt-3">
-                <div class="col-md-3">
-                    {{ form_label(searchForm.minTrialDays) }}
-                    {{ form_widget(searchForm.minTrialDays, {'attr': {'class': 'form-control', 'placeholder': 'Min Trial Days'}}) }}
-                </div>
-
-                <div class="col-md-3">
-                    {{ form_label(searchForm.maxTrialDays) }}
-                    {{ form_widget(searchForm.maxTrialDays, {'attr': {'class': 'form-control', 'placeholder': 'Max Trial Days'}}) }}
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="col-12 text-end">
-                    <button class="btn fw-semibold px-4"
-                            style="background: linear-gradient(90deg,#0d6efd 0%,#6610f2 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <i class="bi bi-search me-1"></i>
-                        Search
-                    </button>
-                </div>
-            </div>
-
-            {{ form_end(searchForm) }}
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Slug</th>
-                        <th>Price</th>
-                        <th>Interval</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for subscriptionPlan in pagination %}
-                        <tr>
-                            <td>{{ subscriptionPlan.id }}</td>
-                            <td>{{ subscriptionPlan.name }}</td>
-                            <td>{{ subscriptionPlan.slug }}</td>
-
-                            {# Price with discount #}
-                            <td class="fw-bold">
-                                {% if subscriptionPlan.discountPercent and subscriptionPlan.discountPercent > 0 %}
-                                    <div>
-                                        <span class="text-muted text-decoration-line-through small">
-                                            {{ subscriptionPlan.price|number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
-                                        </span>
-                                    </div>
-                                    <div class="text-danger">
-                                        {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100)) 
-                                            |number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
-                                    </div>
-                                {% else %}
-                                    {{ subscriptionPlan.price|number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
-                                {% endif %}
-                            </td>
-
-                            <td>{{ subscriptionPlan.billingInterval|capitalize }}</td>
-
-                            {# Active / Disabled badge #}
-                            <td>
-                                {% if subscriptionPlan.isActive %}
-                                    <span class="badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Disabled</span>
-                                {% endif %}
-                            </td>
-
-                            <td>{{ subscriptionPlan.createdAt|date('Y-m-d') }}</td>
-
-                            <td class="d-flex flex-wrap gap-2">
-                                {# Show button #}
-                                <a href="{{ path('subscription_plan_show', { id: subscriptionPlan.id, slug: subscriptionPlan.slug }) }}" 
-                                   class="btn btn-sm fw-semibold"
-                                   style="background: linear-gradient(90deg,#0d6efd 0%,#6610f2 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
-                                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-                                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                    Show
-                                </a>
-
-                                {# Edit button #}
-                                <a href="{{ path('subscription_plan_edit', { id: subscriptionPlan.id }) }}" 
-                                   class="btn btn-sm fw-semibold"
-                                   style="background: linear-gradient(90deg,#ffc107 0%,#fd7e14 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
-                                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-                                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                    Edit
-                                </a>
-
-                                {# Enable / Disable button #}
-                                <form action="{{ path('subscription_plan_toggle', { id: subscriptionPlan.id }) }}"
-                                      method="post"
-                                      style="display:inline-block">
-                                    <input type="hidden" name="_method" value="PATCH">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_status' ~ subscriptionPlan.id) }}">
-                                    {% if subscriptionPlan.isActive %}
-                                        <button class="btn btn-sm fw-semibold"
-                                                style="background: linear-gradient(90deg,#dc3545 0%,#b02a37 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
-                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                            Disable
-                                        </button>
-                                    {% else %}
-                                        <button class="btn btn-sm fw-semibold"
-                                                style="background: linear-gradient(90deg,#28a745 0%,#218838 100%); color:#fff; border:none; transition: transform 0.1s, box-shadow 0.2s;"
-                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
-                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                            Enable
-                                        </button>
-                                    {% endif %}
-                                </form>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">
-                                No subscription plans found.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {# Billing interval #}
+        <div class="col-lg-3">
+            <label class="form-label small text-muted">Interval</label>
+            {{ form_widget(searchForm.billingInterval, {
+                'attr': {'class': 'form-select border-0'}
+            }) }}
         </div>
 
-        {# Create New Plan button #}
-        <div class="d-grid gap-2 mt-3">
-            <a href="{{ path('subscription_plan_new') }}"
-               class="btn fw-semibold"
-               style="background: linear-gradient(90deg,#198754 0%,#20c997 100%); color:#fff; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s, box-shadow 0.2s;"
-               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                Create New Plan
+        {# Search button #}
+        <div class="col-lg-2 d-grid">
+            <button class="btn btn-custom">
+                <i class="bi bi-search me-1"></i>
+                Search
+            </button>
+        </div>
+
+        {# Reset button #}
+        <div class="col-lg-2 d-grid">
+            <a href="{{ path('subscription_plan_index') }}"
+               class="btn btn-outline-secondary">
+                Reset
             </a>
         </div>
 
     </div>
-</div>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
+    {# Advanced filters #}
+    <div class="row g-3 mt-3">
+
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Min Price</label>
+            {{ form_widget(searchForm.minPrice, {
+                'attr': {'class': 'form-control'}
+            }) }}
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Max Price</label>
+            {{ form_widget(searchForm.maxPrice, {
+                'attr': {'class': 'form-control'}
+            }) }}
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Min Trial</label>
+            {{ form_widget(searchForm.minTrialDays, {
+                'attr': {'class': 'form-control'}
+            }) }}
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Max Trial</label>
+            {{ form_widget(searchForm.maxTrialDays, {
+                'attr': {'class': 'form-control'}
+            }) }}
+        </div>
+
+    </div>
+
+    {# Toggles #}
+    <div class="d-flex gap-4 mt-3">
+
+        <div class="form-check">
+            {{ form_widget(searchForm.isActive, {'attr': {'class': 'form-check-input'}}) }}
+            <label class="form-check-label small">Active only</label>
+        </div>
+
+        <div class="form-check">
+            {{ form_widget(searchForm.isFeatured, {'attr': {'class': 'form-check-input'}}) }}
+            <label class="form-check-label small">Featured</label>
+        </div>
+
+    </div>
+
+    {{ form_end(searchForm) }}
+</div>
+
+{# ===========================
+   Plans Table
+   =========================== #}
+<div class="table-responsive">
+    <table class="table align-middle">
+
+        <thead>
+            <tr class="text-muted small">
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Interval</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for subscriptionPlan in pagination %}
+            <tr class="border-top">
+
+                {# ID #}
+                <td class="text-muted small">
+                    #{{ subscriptionPlan.id }}
+                </td>
+
+                {# Name + slug #}
+                <td class="fw-semibold">
+                    {{ subscriptionPlan.name }}
+                    <div class="text-muted small">{{ subscriptionPlan.slug }}</div>
+                </td>
+
+                {# Price with discount #}
+                <td>
+                    {% if subscriptionPlan.discountPercent %}
+                        <div class="text-muted small text-decoration-line-through">
+                            {{ subscriptionPlan.price|number_format(2) }}€
+                        </div>
+                        <div class="fw-bold text-danger">
+                            {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100))|number_format(2) }}€
+                        </div>
+                    {% else %}
+                        <span class="fw-bold">
+                            {{ subscriptionPlan.price|number_format(2) }}€
+                        </span>
+                    {% endif %}
+                </td>
+
+                {# Billing interval #}
+                <td class="text-muted">
+                    {{ subscriptionPlan.billingInterval|capitalize }}
+                </td>
+
+                {# Status badge #}
+                <td>
+                    {% if subscriptionPlan.isActive %}
+                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-muted px-3 py-2">
+                            Disabled
+                        </span>
+                    {% endif %}
+                </td>
+
+                {# Actions #}
+                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+
+                        <a href="{{ path('subscription_plan_show', { id: subscriptionPlan.id, slug: subscriptionPlan.slug }) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            View
+                        </a>
+
+                        <a href="{{ path('subscription_plan_edit', { id: subscriptionPlan.id }) }}"
+                           class="btn btn-sm btn-outline-warning">
+                            Edit
+                        </a>
+
+                        <form action="{{ path('subscription_plan_toggle', { id: subscriptionPlan.id }) }}"
+                              method="post">
+                            <input type="hidden" name="_method" value="PATCH">
+                            <input type="hidden" name="_token" value="{{ csrf_token('toggle_status' ~ subscriptionPlan.id) }}">
+
+                            {% if subscriptionPlan.isActive %}
+                                <button class="btn btn-sm btn-outline-danger">
+                                    Disable
+                                </button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-success">
+                                    Enable
+                                </button>
+                            {% endif %}
+                        </form>
+
+                    </div>
+                </td>
+
+            </tr>
+
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    No subscription plans found.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ===========================
+   Call To Action
+   =========================== #}
+<div class="mt-4 text-end">
+    <a href="{{ path('subscription_plan_new') }}" class="btn btn-custom">
+        + Create Plan
+    </a>
+</div>
+
 {% endblock %}

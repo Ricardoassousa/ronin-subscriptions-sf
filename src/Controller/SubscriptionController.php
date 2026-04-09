@@ -152,10 +152,10 @@ class SubscriptionController extends AbstractController
         }
 
         // Check if the user has permission to subscribe
-        if (!$authChecker->isGranted('SUBSCRIBE_TO_PLAN', $user)) {
-            $this->addFlash('danger', 'You are not authorized to subscribe to this plan.');
-            return $this->redirectToRoute('subscription_index');
-        }
+        // if (!$authChecker->isGranted('SUBSCRIBE_TO_PLAN', $user)) {
+        //     $this->addFlash('danger', 'You are not authorized to subscribe to this plan.');
+        //     return $this->redirectToRoute('subscription_index');
+        // }
 
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
 
