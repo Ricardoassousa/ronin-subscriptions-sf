@@ -2,94 +2,84 @@
 
 {% block title %}Register{% endblock %}
 
+{% block main_container %}
 {% block body %}
 
 {# ===========================
    Page Header
    =========================== #}
 <div class="mb-4 text-center">
-    <h2 class="fw-bold mb-1" style="color:#000000;">Create an Account</h2>
-    <div class="text-muted small">
-        Fill in your details to register
-    </div>
+    <h2 class="fw-bold mb-1">Create an Account</h2>
+    <div class="text-muted small">Fill in your details to register</div>
 </div>
 
 {# ===========================
-   Form Container (centered)
+   Form Container (main-container style)
    =========================== #}
-<div class="mx-auto" style="max-width: 420px;">
+<div class="main-container mx-auto" style="max-width: 420px;">
 
-    <div class="p-4 rounded-4"
-         style="background: rgba(255,255,255,0.55);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255,255,255,0.4);">
+    {{ form_start(registrationForm) }}
 
-        {{ form_start(registrationForm) }}
-
-        <!-- Email -->
-        <div class="mb-3">
-            {{ form_label(registrationForm.email) }}
-            {{ form_widget(registrationForm.email, {
-                'attr': {
-                    'class': 'form-control ' ~ (registrationForm.email.vars.errors|length ? 'is-invalid' : '')
-                }
-            }) }}
-            {% for error in registrationForm.email.vars.errors %}
-                <div class="invalid-feedback">{{ error.message }}</div>
-            {% endfor %}
-        </div>
-
-        <!-- Password -->
-        <div class="mb-3">
-            {{ form_label(registrationForm.password.first, 'Password') }}
-            {{ form_widget(registrationForm.password.first, {
-                'attr': {
-                    'class': 'form-control ' ~ (registrationForm.password.first.vars.errors|length ? 'is-invalid' : '')
-                }
-            }) }}
-            {% for error in registrationForm.password.first.vars.errors %}
-                <div class="invalid-feedback">{{ error.message }}</div>
-            {% endfor %}
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mb-3">
-            {{ form_label(registrationForm.password.second, 'Confirm Password') }}
-            {{ form_widget(registrationForm.password.second, {
-                'attr': {
-                    'class': 'form-control ' ~ (registrationForm.password.second.vars.errors|length ? 'is-invalid' : '')
-                }
-            }) }}
-            {% for error in registrationForm.password.second.vars.errors %}
-                <div class="invalid-feedback">{{ error.message }}</div>
-            {% endfor %}
-        </div>
-
-        <!-- Submit button -->
-        <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-custom">
-                <i class="bi bi-person-plus me-1"></i>
-                Register
-            </button>
-        </div>
-
-        {{ form_end(registrationForm) }}
-
-        <!-- Links -->
-        <div class="text-center">
-            <small class="text-muted d-block">
-                Already have an account? 
-                <a href="{{ path('app_login') }}" class="fw-semibold text-decoration-none" style="color:#000000;">Login here</a>
-            </small>
-            <small class="text-muted d-block mt-1">
-                Forgot your password? 
-                <a href="{{ path('app_forgot_password') }}" class="fw-semibold text-decoration-none" style="color:#000000;">Reset it</a>
-            </small>
-        </div>
-
+    <!-- Email -->
+    <div class="mb-3">
+        {{ form_label(registrationForm.email) }}
+        {{ form_widget(registrationForm.email, {
+            'attr': {
+                'class': 'form-control ' ~ (registrationForm.email.vars.errors|length ? 'is-invalid' : '')
+            }
+        }) }}
+        {% for error in registrationForm.email.vars.errors %}
+            <div class="invalid-feedback">{{ error.message }}</div>
+        {% endfor %}
     </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+        {{ form_label(registrationForm.password.first, 'Password') }}
+        {{ form_widget(registrationForm.password.first, {
+            'attr': {
+                'class': 'form-control ' ~ (registrationForm.password.first.vars.errors|length ? 'is-invalid' : '')
+            }
+        }) }}
+        {% for error in registrationForm.password.first.vars.errors %}
+            <div class="invalid-feedback">{{ error.message }}</div>
+        {% endfor %}
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="mb-3">
+        {{ form_label(registrationForm.password.second, 'Confirm Password') }}
+        {{ form_widget(registrationForm.password.second, {
+            'attr': {
+                'class': 'form-control ' ~ (registrationForm.password.second.vars.errors|length ? 'is-invalid' : '')
+            }
+        }) }}
+        {% for error in registrationForm.password.second.vars.errors %}
+            <div class="invalid-feedback">{{ error.message }}</div>
+        {% endfor %}
+    </div>
+
+    <!-- Submit button -->
+    <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-custom">
+            <i class="bi bi-person-plus me-1"></i>
+            Register
+        </button>
+    </div>
+
+    {{ form_end(registrationForm) }}
+
+    <!-- Links -->
+    <div class="text-center">
+        <small class="text-muted d-block">
+            Already have an account?
+            <a href="{{ path('app_login') }}" class="fw-semibold text-decoration-none">Login here</a>
+        </small>
+    </div>
+
 </div>
 
+{% endblock %}
 {% endblock %}
 
 {% block javascripts %}

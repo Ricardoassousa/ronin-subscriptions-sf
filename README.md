@@ -51,5 +51,5 @@ The Subscription Management application implements the core and high-impact feat
 - [x] Responsive layout
 - [ ] Subscription plans comparison table
 - [ ] Status indicators for subscriptions
-- [ ] Success/error alerts
+- [x] Success/error alerts
 - [x] Consistent navigation

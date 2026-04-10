@@ -2,6 +2,7 @@
 
 {% block title %}Edit Profile{% endblock %}
 
+{% block main_container %}
 {% block body %}
 
 {# ===========================
@@ -17,18 +18,18 @@
 </div>
 
 {# ===========================
-   Flash Messages
-   =========================== #}
-{% for label, messages in app.flashes %}
-    {% for message in messages %}
-        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
-    {% endfor %}
-{% endfor %}
-
-{# ===========================
    Form Container (centered)
    =========================== #}
 <div class="mx-auto" style="max-width: 420px;">
+
+    {# ===========================
+       Flash Messages
+       =========================== #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
 
     <div class="p-4 rounded-4"
          style="background: rgba(255,255,255,0.55);
@@ -92,4 +93,5 @@
 
 </div>
 
+{% endblock %}
 {% endblock %}

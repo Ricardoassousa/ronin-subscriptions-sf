@@ -2,73 +2,61 @@
 
 {% block title %}Login{% endblock %}
 
+{% block main_container %}
 {% block body %}
 
 {# ===========================
    Page Header
    =========================== #}
 <div class="mb-4 text-center">
-    <h2 class="fw-bold mb-1" style="color:#000000;">Login</h2>
-    <div class="text-muted small">
-        Enter your credentials to access your account
-    </div>
+    <h2 class="fw-bold mb-1">Login</h2>
+    <div class="text-muted small">Enter your credentials to access your account</div>
 </div>
 
 {# ===========================
-   Flash/Error Messages
+   Form Container (main-container style)
    =========================== #}
-{% if error %}
-    <div class="alert alert-danger shadow-sm">
-        {{ error.messageKey|trans(error.messageData, 'security') }}
-    </div>
-{% endif %}
+<div class="main-container mx-auto" style="max-width: 420px;">
 
-{# ===========================
-   Form Container (centered)
-   =========================== #}
-<div class="mx-auto" style="max-width: 420px;">
+    {# Flash/Error Messages #}
+    {% if error %}
+        <div class="alert alert-danger shadow-sm mb-3">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
 
-    <div class="p-4 rounded-4"
-         style="background: rgba(255,255,255,0.55);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255,255,255,0.4);">
+    <form action="{{ path('app_login') }}" method="post">
 
-        <form action="{{ path('app_login') }}" method="post">
-
-            <div class="mb-3">
-                <label for="username" class="form-label small text-muted">Email</label>
-                <input type="text" id="username" name="_username"
-                       value="{{ last_username }}"
-                       class="form-control" required autofocus>
-            </div>
-
-            <div class="mb-4">
-                <label for="password" class="form-label small text-muted">Password</label>
-                <input type="password" id="password" name="_password"
-                       class="form-control" required>
-            </div>
-
-            <div class="d-grid mb-3">
-                <button type="submit" class="btn btn-custom">
-                    <i class="bi bi-box-arrow-in-right me-1"></i>
-                    Login
-                </button>
-            </div>
-
-        </form>
-
-        <div class="text-center">
-            <small class="text-muted d-block">
-                Forgot your password? 
-                <a href="{{ path('app_forgot_password') }}" class="fw-semibold text-decoration-none" style="color:#000000;">Reset it</a>
-            </small>
-            <small class="text-muted d-block mt-1">
-                New here? 
-                <a href="{{ path('app_register') }}" class="fw-semibold text-decoration-none" style="color:#000000;">Create an account</a>
-            </small>
+        <div class="mb-3">
+            <label for="username" class="form-label small text-muted">Email</label>
+            <input type="text" id="username" name="_username"
+                   value="{{ last_username }}"
+                   class="form-control" required autofocus>
         </div>
 
+        <div class="mb-4">
+            <label for="password" class="form-label small text-muted">Password</label>
+            <input type="password" id="password" name="_password"
+                   class="form-control" required>
+        </div>
+
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-custom">
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+                Login
+            </button>
+        </div>
+
+    </form>
+
+    <div class="text-center">
+        <small class="text-muted d-block mt-1">
+            New here?
+            <a href="{{ path('app_register') }}" class="fw-semibold text-decoration-none">Create an account</a>
+        </small>
     </div>
+
 </div>
 
+{% endblock %}
 {% endblock %}

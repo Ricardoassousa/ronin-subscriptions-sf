@@ -204,6 +204,12 @@ a {
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="{{ path('app_register') }}">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
                 {% endif %}
 
             </ul>
@@ -213,9 +219,11 @@ a {
 
 <!-- Main -->
 <main class="container py-3 py-md-4 flex-grow-1">
-    <div class="main-container">
-        {% block body %}{% endblock %}
-    </div>
+    {% block main_container %}
+        <div class="main-container">
+            {% block body %}{% endblock %}
+        </div>
+    {% endblock %}
 </main>
 
 <!-- Footer -->
