@@ -111,14 +111,24 @@
     {# Toggles #}
     <div class="d-flex gap-4 mt-3">
 
-        <div class="form-check">
-            {{ form_widget(searchForm.isActive, {'attr': {'class': 'form-check-input'}}) }}
-            <label class="form-check-label small">Active only</label>
+        <div class="form-check" style="flex: 1; max-width: 180px;">
+            {{ form_widget(searchForm.isActive, {
+                'attr': {
+                    'class': 'form-check-input',
+                    'style': 'width: 20px; height: 20px; margin-right: 8px;'
+                }
+            }) }}
+            <label class="form-check-label small" style="font-size: 14px; color: #6c757d;">Active only</label>
         </div>
 
-        <div class="form-check">
-            {{ form_widget(searchForm.isFeatured, {'attr': {'class': 'form-check-input'}}) }}
-            <label class="form-check-label small">Featured</label>
+        <div class="form-check" style="flex: 1; max-width: 180px;">
+            {{ form_widget(searchForm.isFeatured, {
+                'attr': {
+                    'class': 'form-check-input',
+                    'style': 'width: 20px; height: 20px; margin-right: 8px;'
+                }
+            }) }}
+            <label class="form-check-label small" style="font-size: 14px; color: #6c757d;">Featured</label>
         </div>
 
     </div>
@@ -236,6 +246,13 @@
         {% endfor %}
         </tbody>
     </table>
+</div>
+
+{# ===========================
+   Pagination
+   =========================== #}
+<div class="d-flex justify-content-center mt-4">
+    {{ knp_pagination_render(pagination) }}
 </div>
 
 {# ===========================

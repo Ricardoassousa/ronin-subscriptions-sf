@@ -71,7 +71,8 @@ class SubscriptionController extends AbstractController
 
         return $this->render('subscription/index.html.twig', [
             'pagination' => $pagination,
-            'currentSubscription' => $currentSubscription
+            'currentSubscription' => $currentSubscription,
+            'availablePlans' => $pagination->getItems()
         ]);
     }
 
@@ -286,7 +287,7 @@ class SubscriptionController extends AbstractController
         }
 
         // Check permission with SubscriptionVoter (Permission to change the plan)
-        if (!$authChecker->isGranted('CHANGE_PLAN', $subscription)) {
+        if (!$authChecker->isGranted('SUBSCRIPTION_CHANGE_PLAN', $subscription)) {
             $this->addFlash('danger', 'You are not authorized to change this subscription plan.');
             return $this->redirectToRoute('subscription_index');
         }
@@ -401,7 +402,7 @@ class SubscriptionController extends AbstractController
         }
 
         // Check permission with SubscriptionVoter (Permission to cancel the subscription)
-        if (!$authChecker->isGranted('CANCEL_SUBSCRIPTION', $subscription)) {
+        if (!$authChecker->isGranted('SUBSCRIPTION_CANCEL', $subscription)) {
             $this->addFlash('danger', 'You are not authorized to cancel this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
@@ -494,7 +495,7 @@ class SubscriptionController extends AbstractController
         }
 
         // Check permission with SubscriptionVoter (Permission to pause the subscription)
-        if (!$authChecker->isGranted('PAUSE_SUBSCRIPTION', $subscription)) {
+        if (!$authChecker->isGranted('SUBSCRIPTION_PAUSE', $subscription)) {
             $this->addFlash('danger', 'You are not authorized to pause this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
@@ -587,7 +588,7 @@ class SubscriptionController extends AbstractController
         }
 
         // Check permission with SubscriptionVoter (Permission to resume the subscription)
-        if (!$authChecker->isGranted('RESUME_SUBSCRIPTION', $subscription)) {
+        if (!$authChecker->isGranted('SUBSCRIPTION_RESUME', $subscription)) {
             $this->addFlash('danger', 'You are not authorized to resume this subscription.');
             return $this->redirectToRoute('subscription_index');
         }
