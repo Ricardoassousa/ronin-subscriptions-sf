@@ -2,58 +2,61 @@
 
 {% block title %}Login{% endblock %}
 
+{% block main_container %}
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 500px; min-width: 300px; background-color: #ffffff;">
-        <!-- Title -->
-        <h2 class="card-title text-center mb-4 fw-bold" style="color: #6f42c1;">Login</h2>
 
-        <!-- Error Alert -->
-        {% if error %}
-            <div class="alert alert-danger" tabindex="7">
-                {{ error.messageKey|trans(error.messageData, 'security') }}
-            </div>
-        {% endif %}
-
-        <!-- Login Form -->
-        <form action="{{ path('app_login') }}" method="post">
-            <div class="mb-3">
-                <label for="username" class="form-label">Email:</label>
-                <input type="text" id="username" name="_username"
-                       value="{{ last_username }}"
-                       class="form-control" required autofocus tabindex="1"
-                       placeholder="">
-            </div>
-
-            <div class="mb-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" name="_password"
-                       class="form-control" required tabindex="2"
-                       placeholder="">
-            </div>
-
-            <div class="d-grid mb-4">
-                <button type="submit" class="btn btn-lg fw-bold"
-                        style="background: linear-gradient(90deg, #6f42c1 0%, #d63384 100%); border: none; color: #fff;"
-                        tabindex="3">
-                    Login
-                </button>
-            </div>
-        </form>
-
-        <!-- Links -->
-        <div class="text-center mt-2">
-            <small class="text-muted">
-                Forgot your password? 
-                <a href="{{ path('app_forgot_password') }}" class="text-decoration-none fw-semibold" style="color: #6f42c1;" tabindex="4">Reset it</a>
-            </small>
-        </div>
-        <div class="text-center mt-1">
-            <small class="text-muted">
-                New here? 
-                <a href="{{ path('app_register') }}" class="fw-semibold text-decoration-none" style="color: #6f42c1;" tabindex="5">Create an account</a>
-            </small>
-        </div>
-    </div>
+{# ===========================
+   Page Header
+   =========================== #}
+<div class="mb-4 text-center">
+    <h2 class="fw-bold mb-1">Login</h2>
+    <div class="text-muted small">Enter your credentials to access your account</div>
 </div>
+
+{# ===========================
+   Form Container (main-container style)
+   =========================== #}
+<div class="main-container mx-auto" style="max-width: 420px;">
+
+    {# Flash/Error Messages #}
+    {% if error %}
+        <div class="alert alert-danger shadow-sm mb-3">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    <form action="{{ path('app_login') }}" method="post">
+
+        <div class="mb-3">
+            <label for="username" class="form-label small text-muted">Email</label>
+            <input type="text" id="username" name="_username"
+                   value="{{ last_username }}"
+                   class="form-control" required autofocus>
+        </div>
+
+        <div class="mb-4">
+            <label for="password" class="form-label small text-muted">Password</label>
+            <input type="password" id="password" name="_password"
+                   class="form-control" required>
+        </div>
+
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-custom">
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+                Login
+            </button>
+        </div>
+
+    </form>
+
+    <div class="text-center">
+        <small class="text-muted d-block mt-1">
+            New here?
+            <a href="{{ path('app_register') }}" class="fw-semibold text-decoration-none">Create an account</a>
+        </small>
+    </div>
+
+</div>
+
+{% endblock %}
 {% endblock %}

@@ -3,84 +3,97 @@
 {% block title %}Edit User Roles{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
 
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 500px; background-color:#ffffff;">
+{# ===========================
+   Header
+   =========================== #}
+<div class="mb-4 text-center">
+    <h2 class="fw-bold mb-1">
+        Edit Roles
+    </h2>
 
-        <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
-            Edit Roles for 
-            <span style="color:#6f42c1; font-weight:600; font-style:italic;">
-                {{ user.email }}
-            </span>
-        </h2>
+    <div class="text-muted small">
+        {{ user.email }}
+    </div>
+</div>
 
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endfor %}
+{# ===========================
+   Flash Messages
+   =========================== #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+{# ===========================
+   Form Container
+   =========================== #}
+<div class="mx-auto" style="max-width: 500px;">
+
+    <div class="p-4 rounded-4"
+         style="background: rgba(255,255,255,0.55);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.4);">
 
         {{ form_start(form) }}
 
-            <div class="mb-3">
-                {{ form_label(form.roles) }}
+        {# Roles #}
+        <div class="mb-3">
+
+            <label class="form-label small text-muted">
+                User Roles
+            </label>
+
+            <div class="d-flex flex-column gap-2 mt-2">
 
                 {% for child in form.roles %}
-                    <div class="form-check">
+                    <label class="form-check d-flex align-items-center gap-2 p-2 rounded-3"
+                           style="background: rgba(0,0,0,0.02); cursor:pointer;">
+
                         {{ form_widget(child, {
                             attr: {
-                                class: 'form-check-input' ~ (child.vars.errors|length ? ' is-invalid' : '')
+                                class: 'form-check-input'
+                                    ~ (child.vars.errors|length ? ' is-invalid' : '')
                             }
                         }) }}
-                        {{ form_label(child, null, { label_attr: { class: 'form-check-label' } }) }}
-                    </div>
+
+                        <span class="small fw-semibold">
+                            {{ form_label(child) }}
+                        </span>
+
+                    </label>
                 {% endfor %}
 
-                {% for error in form.roles.vars.errors %}
-                    <div class="invalid-feedback d-block">
-                        {{ error.message }}
-                    </div>
-                {% endfor %}
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn fw-semibold"
-                        style="
-                            background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%);
-                            border:none;
-                            color:#fff;
-                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                            transition: transform 0.1s, box-shadow 0.2s;
-                        "
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                    Save Changes
-                </button>
+            {% for error in form.roles.vars.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ error.message }}
+                </div>
+            {% endfor %}
 
-                <a href="{{ path('admin_users_list') }}"
-                   class="btn fw-semibold w-100 w-md-auto"
-                   style="
-                        background:#ffffff;
-                        color:#6f42c1;
-                        border:2px solid #6f42c1;
-                        border-radius:0.375rem;
-                        transition: all 0.2s;
-                   "
-                   onmouseover="this.style.background='#6f42c1'; this.style.color='#fff';"
-                   onmouseout="this.style.background='#ffffff'; this.style.color='#6f42c1';">
-                    Back to Users list
-                </a>
-            </div>
+        </div>
+
+        {# Actions #}
+        <div class="d-flex flex-column gap-2 mt-4">
+
+            <button type="submit" class="btn btn-custom">
+                <i class="bi bi-check-lg me-1"></i>
+                Save Changes
+            </button>
+
+            <a href="{{ path('admin_users_list') }}"
+               class="btn btn-outline-secondary">
+                ← Back to Users
+            </a>
+
+        </div>
 
         {{ form_end(form) }}
 
     </div>
 
 </div>
-{% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
 {% endblock %}

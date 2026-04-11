@@ -3,67 +3,92 @@
 {% block title %}Users List{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
 
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 900px; background-color:#ffffff;">
+{# ===========================
+   Header
+   =========================== #}
+<div class="mb-4 text-center">
+    <h2 class="fw-bold mb-1">Users</h2>
+    <div class="text-muted small">Manage registered users</div>
+</div>
 
-        <h2 class="text-center fw-bold mb-4" style="color:#6f42c1;">Users List</h2>
+{# ===========================
+   Flash Messages
+   =========================== #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
 
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">{{ message }}</div>
-            {% endfor %}
-        {% endfor %}
+{# ===========================
+   Users List
+   =========================== #}
+<div class="p-4 rounded-4"
+     style="background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.4);">
 
-        {% if pagination|length > 0 %}
-            <ul class="list-group list-group-flush">
-                {% for user in pagination %}
-                    <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+    {% if pagination|length > 0 %}
 
-                        <div class="text-break mb-3 mb-md-0">
-                            <strong>{{ user.email }}</strong>
-                            {# {% if user.customerProfile %}
-                                <div class="small text-muted mt-1">
-                                    {{ user.customerProfile.firstName }} {{ user.customerProfile.surname }}
-                                    {% if user.customerProfile.phone %}- {{ user.customerProfile.phone }}{% endif %}
-                                </div>
-                                {% if user.customerProfile.country %}
-                                    <div class="small text-muted">{{ user.customerProfile.city }} {{ user.customerProfile.country }}</div>
-                                {% endif %}
-                            {% endif %} #}
-                            <div class="small text-muted mt-1">Roles: {{ user.roles|join(', ') }}</div>
+        <div class="list-group list-group-flush">
+
+            {% for user in pagination %}
+                <div class="list-group-item px-0 py-3 border-top">
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+
+                        {# User info #}
+                        <div class="text-break">
+                            <div class="fw-semibold">
+                                {{ user.email }}
+                            </div>
+
+                            <small class="text-muted">
+                                {{ user.roles|join(', ') }}
+                            </small>
                         </div>
 
-                        <div class="d-flex gap-2">
-                            <a href="{{ path('admin_user_edit', { id: user.id }) }}" 
-                               class="btn btn-sm fw-semibold" 
-                               style="background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%); border:none; color:#fff;">
-                               Edit roles
+                        {# Actions #}
+                        <div class="mt-2 mt-md-0">
+                            <a href="{{ path('admin_user_edit', { id: user.id }) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                Edit roles
                             </a>
                         </div>
 
-                    </li>
-                {% endfor %}
-            </ul>
+                    </div>
 
-            <div class="d-flex justify-content-center mt-4">{{ knp_pagination_render(pagination) }}</div>
-        {% else %}
-            <div class="alert alert-light border text-center">No users found.</div>
-        {% endif %}
+                </div>
+            {% endfor %}
 
-        <div class="mt-4 text-center">
-            <a href="{{ path('admin_users_index') }}"
-               class="btn fw-bold w-100 w-md-auto" 
-               style="background:#6f42c1;color:#fff;border:none;">
-               Back to Management
-            </a>
         </div>
 
-    </div>
+        {# Pagination #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination) }}
+        </div>
+
+    {% else %}
+
+        {# Empty state #}
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+            No users found.
+        </div>
+
+    {% endif %}
 
 </div>
-{% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
+{# ===========================
+   Navigation
+   =========================== #}
+<div class="mt-4 text-center">
+    <a href="{{ path('admin_users_index') }}"
+       class="btn btn-outline-secondary">
+        ← Back to Management
+    </a>
+</div>
+
 {% endblock %}
