@@ -1,0 +1,5 @@
+knp_paginator:
+    page_limit: 10
+    page_range: 5
+    template:
+        pagination: '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig'

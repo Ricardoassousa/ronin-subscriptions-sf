@@ -57,12 +57,28 @@ class SubscriptionService
     public function subscribe(User $user, SubscriptionPlan $subscriptionPlan): Subscription
     {
         if (!$user) {
-            $this->logger->error('Cannot subscribe: user is null.');
+            $this->logger->error(
+                'Cannot subscribe: user is null.',
+                [
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new InvalidArgumentException('User cannot be null.');
         }
 
         if (!$subscriptionPlan) {
-            $this->logger->error('Cannot subscribe: subscription plan is null.');
+            $this->logger->error(
+                'Cannot subscribe: subscription plan is null.',
+                [
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new InvalidArgumentException('Subscription plan cannot be null.');
         }
 
@@ -81,11 +97,18 @@ class SubscriptionService
         $this->em->persist($subscription);
         $this->em->flush();
 
-        $this->logger->info('User subscribed to a plan', [
-            'user_id' => $user->getId(),
-            'subscription_plan_id' => $subscriptionPlan->getId(),
-            'subscription_id' => $subscription->getId()
-        ]);
+        $this->logger->info(
+            'User subscribed to a plan',
+            [
+                'user_id' => $user->getId(),
+                'subscription_plan_id' => $subscriptionPlan->getId(),
+                'subscription_id' => $subscription->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
 
         return $subscription;
     }
@@ -136,12 +159,19 @@ class SubscriptionService
         $this->em->persist($newSubscription);
         $this->em->flush();
 
-        $this->logger->info('Subscription plan changed', [
-            'old_subscription_id' => $subscription->getId(),
-            'new_subscription_id' => $newSubscription->getId(),
-            'old_plan_id' => $subscription->getSubscriptionPlan()?->getId(),
-            'new_plan_id' => $newPlan->getId()
-        ]);
+        $this->logger->info(
+            'Subscription plan changed',
+            [
+                'old_subscription_id' => $subscription->getId(),
+                'new_subscription_id' => $newSubscription->getId(),
+                'old_plan_id' => $subscription->getSubscriptionPlan()?->getId(),
+                'new_plan_id' => $newPlan->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
 
         return $newSubscription;
     }
@@ -159,14 +189,29 @@ class SubscriptionService
     public function cancel(Subscription $subscription): void
     {
         if (!$subscription) {
-            $this->logger->error('Cannot cancel: subscription is null.');
+            $this->logger->error(
+                'Cannot cancel: subscription is null.',
+                [
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new InvalidArgumentException('Subscription cannot be null.');
         }
 
         if ($subscription->getStatus() === SubscriptionStatus::CANCELLED->value) {
-            $this->logger->warning('Cannot cancel: subscription already cancelled', [
-                'subscription_id' => $subscription->getId()
-            ]);
+            $this->logger->warning(
+                'Cannot cancel: subscription already cancelled',
+                [
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new LogicException('Subscription is already cancelled.');
         }
 
@@ -176,10 +221,17 @@ class SubscriptionService
 
         $this->em->flush();
 
-        $this->logger->info('Subscription cancelled', [
-            'subscription_id' => $subscription->getId(),
-            'user_id' => $subscription->getUser()?->getId()
-        ]);
+        $this->logger->info(
+            'Subscription cancelled',
+            [
+                'subscription_id' => $subscription->getId(),
+                'user_id' => $subscription->getUser()?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
     }
 
     /**
@@ -200,10 +252,17 @@ class SubscriptionService
         }
 
         if ($subscription->getStatus() !== SubscriptionStatus::ACTIVE->value) {
-            $this->logger->warning('Cannot pause: subscription not active', [
-                'subscription_id' => $subscription->getId(),
-                'current_status' => $subscription->getStatus()
-            ]);
+            $this->logger->warning(
+                'Cannot pause: subscription not active',
+                [
+                    'subscription_id' => $subscription->getId(),
+                    'current_status' => $subscription->getStatus(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new LogicException('Only active subscriptions can be paused.');
         }
 
@@ -212,10 +271,17 @@ class SubscriptionService
 
         $this->em->flush();
 
-        $this->logger->info('Subscription paused', [
-            'subscription_id' => $subscription->getId(),
-            'user_id' => $subscription->getUser()?->getId()
-        ]);
+        $this->logger->info(
+            'Subscription paused',
+            [
+                'subscription_id' => $subscription->getId(),
+                'user_id' => $subscription->getUser()?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
     }
 
     /**
@@ -236,10 +302,17 @@ class SubscriptionService
         }
 
         if ($subscription->getStatus() !== SubscriptionStatus::PAUSED->value) {
-            $this->logger->warning('Cannot resume: subscription not paused', [
-                'subscription_id' => $subscription->getId(),
-                'current_status' => $subscription->getStatus()
-            ]);
+            $this->logger->warning(
+                'Cannot resume: subscription not paused',
+                [
+                    'subscription_id' => $subscription->getId(),
+                    'current_status' => $subscription->getStatus(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
             throw new LogicException('Only paused subscriptions can be resumed.');
         }
 
@@ -259,10 +332,17 @@ class SubscriptionService
 
         $this->em->flush();
 
-        $this->logger->info('Subscription resumed', [
-            'subscription_id' => $subscription->getId(),
-            'user_id' => $subscription->getUser()?->getId()
-        ]);
+        $this->logger->info(
+            'Subscription resumed',
+            [
+                'subscription_id' => $subscription->getId(),
+                'user_id' => $subscription->getUser()?->getId(),
+                'source' => [
+                    'method' => __METHOD__,
+                    'line' => __LINE__
+                ]
+            ]
+        );
     }
 
 }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Subscription;
+use App\Entity\User;
 use App\Enum\SubscriptionStatus;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -26,7 +27,6 @@ class SubscriptionRepository extends ServiceEntityRepository
      * Typically used for sending renewal reminder notifications.
      *
      * @param DateTimeImmutable $date
-     *
      * @return Subscription[]
      */
     public function findRenewingSoon(DateTimeImmutable $date): array
@@ -66,6 +66,24 @@ class SubscriptionRepository extends ServiceEntityRepository
             ]);
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * Finds all subscriptions for a specific user, ordered by the started date.
+     *
+     * @param User $user
+     * @return Subscription[]
+     */
+    public function findSubscriptionsByUser(User $user): array
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('subscription')
+            ->from(Subscription::class, 'subscription')
+            ->where('subscription.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('subscription.startedAt', 'DESC');
+
+        return $qb->getQuery()->getResult();
     }
 
 }

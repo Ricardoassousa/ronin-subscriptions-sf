@@ -79,4 +79,21 @@ class SubscriptionPlanRepository extends ServiceEntityRepository
         return $qb->getQuery();
     }
 
+    /**
+     * Finds all active subscription plans.
+     *
+     * @return SubscriptionPlan[]
+     */
+    public function findActiveSubscriptionPlans(): array
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('subscriptionPlan')
+            ->from(SubscriptionPlan::class, 'subscriptionPlan')
+            ->where('subscriptionPlan.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('subscriptionPlan.id', 'ASC');
+
+        return $qb->getQuery()->getResult();
+    }
+
 }

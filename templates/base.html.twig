@@ -6,9 +6,6 @@
 
     <title>{% block title %}Ronin Subscriptions{% endblock %}</title>
 
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-
     <!-- Bootstrap + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -16,156 +13,135 @@
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
     <style>
-        /* ===== Base ===== */
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+/* ===== Base ===== */
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 
-            /* Original color palette, smoother blending */
-            background:
-                radial-gradient(circle at 20% 20%, #eef2ff, transparent 45%),
-                radial-gradient(circle at 80% 0%, #e0f7fa, transparent 45%),
-                #f8fafc;
-        }
+    background:
+        radial-gradient(circle at 15% 20%, rgba(13, 202, 240, 0.15), transparent 40%),
+        radial-gradient(circle at 85% 0%, rgba(111, 66, 193, 0.15), transparent 40%),
+        linear-gradient(180deg, #f1f5f9 0%, #e9eef5 100%);
 
-        /* ===== Navbar (refined glass) ===== */
-        .navbar {
-            background: rgba(31, 31, 31, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
+    color: #1e293b;
+}
 
-        .navbar-brand {
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            font-size: 1.05rem;
-        }
+/* ===== Navbar ===== */
+.navbar {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(18px);
 
-        .nav-link {
-            transition: all 0.25s ease;
-            opacity: 0.85;
-            position: relative;
-        }
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 
-        /* Underline hover animation */
-        .nav-link::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: 4px;
-            width: 0%;
-            height: 2px;
-            background: #0dcaf0;
-            transition: width 0.25s ease;
-        }
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+}
 
-        .nav-link:hover {
-            opacity: 1;
-            color: #0dcaf0 !important;
-        }
+.navbar-brand {
+    font-weight: 600;
+    color: #0f172a !important;
+}
 
-        .nav-link:hover::after {
-            width: 100%;
-        }
+/* ===== User badge ===== */
+.user-badge {
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(13,202,240,0.15));
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
 
-        /* ===== User badge ===== */
-        .user-badge {
-            background: rgba(255,255,255,0.1);
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 0.85rem;
-            backdrop-filter: blur(6px);
-        }
+/* ===== Menu button ===== */
+.btn-menu {
+    background: rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.08);
+    color: #222;
+    border-radius: 12px;
+    padding: 6px 14px;
+}
 
-        /* ===== Main container (clean glass card) ===== */
-        .main-container {
-            background: rgba(255,255,255,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 24px;
+.btn-menu:hover {
+    background: rgba(0,0,0,0.08);
+}
 
-            border: 1px solid rgba(255,255,255,0.45);
+/* ===== Dropdown ===== */
+.dropdown-menu {
+    border: none;
+    border-radius: 16px;
+    padding: 10px;
 
-            box-shadow:
-                0 10px 30px rgba(0,0,0,0.08),
-                0 2px 10px rgba(0,0,0,0.03);
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(16px);
 
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+    box-shadow:
+        0 20px 50px rgba(0,0,0,0.12),
+        0 6px 18px rgba(0,0,0,0.06);
+}
 
-        /* Subtle hover lift */
-        .main-container:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 14px 40px rgba(0,0,0,0.10),
-                0 4px 15px rgba(0,0,0,0.05);
-        }
+.dropdown-item {
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 500;
+    color: #1e293b;
+}
 
-        @media (min-width: 768px) {
-            .main-container {
-                padding: 30px;
-            }
-        }
+.dropdown-item:hover {
+    background: rgba(99, 102, 241, 0.12);
+}
 
-        /* ===== Buttons (same colors, more polish) ===== */
-        .btn-custom {
-            border-radius: 12px;
-            padding: 8px 18px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+.dropdown-item.active {
+    background: linear-gradient(135deg, #6366f1, #0dcaf0);
+    color: white;
+}
 
-            background-color: #0dcaf0;
-            border: none;
-            color: #fff;
-        }
+/* ===== Main container ===== */
+.main-container {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
 
-        .btn-custom:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(13, 202, 240, 0.35);
-            filter: brightness(1.05);
-        }
+    border-radius: 20px;
+    padding: 28px;
 
-        .btn-custom:active {
-            transform: translateY(0);
-            box-shadow: 0 3px 8px rgba(13, 202, 240, 0.25);
-        }
+    border: 1px solid rgba(255,255,255,0.4);
 
-        /* ===== Footer ===== */
-        footer {
-            margin-top: auto;
-            opacity: 0.7;
-            font-size: 0.8rem;
-        }
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.08),
+        0 8px 24px rgba(0,0,0,0.05);
 
-        /* ===== Scrollbar ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
+    transition: all 0.25s ease;
+}
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.12);
-            border-radius: 10px;
-        }
+.main-container:hover {
+    transform: translateY(-3px);
+}
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.2);
-        }
+/* ===== Alerts ===== */
+.alert {
+    border-radius: 12px;
+}
 
-        /* ===== Small screen tweaks ===== */
-        @media (max-width: 576px) {
-            .main-container {
-                padding: 18px;
-                border-radius: 14px;
-            }
+/* ===== Footer ===== */
+footer {
+    margin-top: auto;
+    opacity: 0.6;
+    font-size: 0.8rem;
+}
 
-            .navbar-brand {
-                font-size: 1rem;
-            }
-        }
+/* ===== Micro-interactions ===== */
+* {
+    transition: all 0.2s ease;
+}
+
+a {
+    text-decoration: none;
+}
     </style>
 
     {% block stylesheets %}{% endblock %}
@@ -173,70 +149,90 @@
 
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid px-3 px-lg-4">
+{% set currentRoute = app.request.get('_route') %}
 
-            <!-- Brand -->
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <i class="bi bi-kanban"></i>
-                Ronin
-            </a>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg" role="navigation" aria-label="Main navigation">
+    <div class="container-fluid px-3 px-lg-4">
 
-            <!-- Mobile toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ path('homepage') }}">
+            <i class="bi bi-kanban"></i>
+            Ronin
+        </a>
 
-            <!-- Menu -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
+        <!-- Mobile toggle -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                    {% if app.user %}
-                        <li class="nav-item">
-                            <span class="nav-link user-badge d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-person-circle"></i>
-                                <span class="d-none d-sm-inline">
-                                    {{ app.user.userIdentifier }}
-                                </span>
-                            </span>
-                        </li>
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-2 mt-3 mt-lg-0">
 
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-1" href="{{ path('app_logout') }}">
-                                <i class="bi bi-box-arrow-right"></i>
-                                Logout
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-1" href="{{ path('app_login') }}">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                Login
-                            </a>
-                        </li>
-                    {% endif %}
+                {% if app.user %}
+                    <!-- User -->
+                    <li class="nav-item">
+                        <span class="user-badge d-flex align-items-center gap-2">
+                            <i class="bi bi-person-circle"></i>
+                            {{ app.user.userIdentifier }}
+                        </span>
+                    </li>
 
-                </ul>
-            </div>
+                    <!-- Dropdown -->
+                    <li class="nav-item dropdown">
+                        <button class="btn-menu d-flex align-items-center gap-2 px-3 py-2"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="bi bi-grid"></i>
+                            <span>Menu</span>
+                        </button>
+
+                        {% include 'partials/_user_menu.html.twig' %}
+                    </li>
+
+                {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-dark"
+                           href="{{ path('app_login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="{{ path('app_register') }}">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
+                {% endif %}
+
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Main -->
-    <main class="container py-3 py-md-4 flex-grow-1">
+<!-- Main -->
+<main class="container py-3 py-md-4 flex-grow-1">
+    {% block main_container %}
         <div class="main-container">
             {% block body %}{% endblock %}
         </div>
-    </main>
+    {% endblock %}
+</main>
 
-    <!-- Footer -->
-    <footer class="text-center text-muted small py-3">
-        © {{ "now"|date("Y") }} Ronin Subscriptions
-    </footer>
+<!-- Footer -->
+<footer class="text-center text-muted small py-3">
+    © {{ "now"|date("Y") }} Ronin Subscriptions
+</footer>
 
-    <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    {% block javascripts %}{% endblock %}
+{% block javascripts %}{% endblock %}
 </body>
 </html>

@@ -3,62 +3,107 @@
 {% block title %}Admin Management{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-start min-vh-100 p-3">
 
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 900px; background-color:#ffffff;">
+{# ===========================
+   Header
+   =========================== #}
+<div class="mb-4 text-center">
+    <h2 class="fw-bold mb-1">Admin Management</h2>
+    <div class="text-muted small">Overview & quick actions</div>
+</div>
 
-        <h2 class="fw-bold text-center mb-2" style="color:#6f42c1;">Admin Management</h2>
-        <p class="text-muted text-center mb-4">Overview & quick actions</p>
+{# ===========================
+   Tabs Navigation
+   =========================== #}
+<ul class="nav nav-pills justify-content-center mb-4 gap-2" id="adminTabs" role="tablist">
 
-        <ul class="nav nav-tabs justify-content-center mb-4 flex-wrap" id="adminTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
-                    <i class="bi bi-people me-1"></i> Users
-                </button>
-            </li>
-        </ul>
+    <li class="nav-item">
+        <button class="nav-link active px-4"
+                id="users-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#users"
+                type="button">
+            <i class="bi bi-people me-1"></i>
+            Users
+        </button>
+    </li>
 
-        <div class="tab-content" id="adminTabsContent">
-            <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+</ul>
 
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body">
+{# ===========================
+   Tab Content
+   =========================== #}
+<div class="tab-content">
 
-                        <h4 class="mb-3"><i class="bi bi-people me-2"></i>Manage Users</h4>
+    {# ================= USERS TAB ================= #}
+    <div class="tab-pane fade show active" id="users">
 
-                        <a href="{{ path('admin_users_list') }}" 
-                           class="btn fw-semibold mb-4 w-100 w-md-auto d-block d-md-inline-block text-center"
-                           style="background: linear-gradient(90deg,#6f42c1 0%,#d63384 100%); border:none; color:#fff;">
-                            View all users
-                        </a>
+        <div class="p-4 rounded-4"
+             style="background: rgba(255,255,255,0.55);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.4);">
 
-                        {% if users is not empty %}
-                            <h6 class="text-muted mb-3">Latest registered users</h6>
-                            <ul class="list-group list-group-flush">
-                                {% for user in users %}
-                                    <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                                        <div class="me-auto text-break mb-2 mb-md-0">
-                                            <div class="fw-bold">{{ user.email }}</div>
-                                            <small class="text-muted d-block">Roles: {{ user.roles|join(', ') }}</small>
-                                        </div>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <div class="alert alert-light border text-center mt-3">No users found.</div>
-                        {% endif %}
+            {# Section header #}
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
 
-                    </div>
-                </div>
+                <h5 class="mb-2 mb-md-0">
+                    <i class="bi bi-people me-2"></i>
+                    Manage Users
+                </h5>
+
+                <a href="{{ path('admin_users_list') }}"
+                   class="btn btn-custom btn-sm">
+                    View all users
+                </a>
 
             </div>
+
+            {# Users list #}
+            {% if users is not empty %}
+
+                <div class="list-group list-group-flush">
+
+                    {% for user in users %}
+                        <div class="list-group-item px-0 py-3 border-top">
+
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+
+                                <div class="text-break">
+                                    <div class="fw-semibold">
+                                        {{ user.email }}
+                                    </div>
+
+                                    <small class="text-muted">
+                                        {{ user.roles|join(', ') }}
+                                    </small>
+                                </div>
+
+                                <div class="mt-2 mt-md-0">
+                                    <span class="badge bg-light text-dark">
+                                        User
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                    No users found.
+                </div>
+
+            {% endif %}
+
         </div>
 
     </div>
 
 </div>
-{% endblock %}
 
-{% block javascripts %}
-{{ parent() }}
 {% endblock %}

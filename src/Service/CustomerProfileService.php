@@ -38,7 +38,11 @@ class CustomerProfileService
             $this->logger->warning(
                 'User does not have a customer profile.',
                 [
-                    'user_id' => $user->getId()
+                    'user_id' => $user->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return false;

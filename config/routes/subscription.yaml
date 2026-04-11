@@ -3,6 +3,11 @@ subscription_index:
     controller: App\Controller\SubscriptionController::index
     methods: [GET]
 
+subscriptions_history:
+    path: /history
+    controller: App\Controller\SubscriptionController::history
+    methods: [GET]
+
 subscription_subscribe:
     path: /subscribe/{planId}
     controller: App\Controller\SubscriptionController::subscribe

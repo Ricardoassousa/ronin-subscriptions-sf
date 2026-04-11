@@ -3,72 +3,104 @@
 {% block title %}Subscription Plan Details{% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-center min-vh-100 p-3">
-    <div class="card shadow-lg rounded-4 p-4 w-100" style="max-width: 700px; background-color:#ffffff;">
 
-        <h2 class="card-title mb-4 text-center fw-bold" style="color:#000000; font-size:1.75rem;">
-            {{ subscriptionPlan.name }}
-        </h2>
+{# ===========================
+   Header
+   =========================== #}
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">
+        {{ subscriptionPlan.name }}
+    </h2>
 
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">{{ message }}</div>
-            {% endfor %}
-        {% endfor %}
+    <div class="text-muted small">
+        Plan details overview
+    </div>
+</div>
 
-        <ul class="list-group list-group-flush mb-4">
-            <li class="list-group-item"><strong>Price:</strong>
-                ${{ subscriptionPlan.price|number_format(2, '.', ',') }}
-            </li>
-            <li class="list-group-item"><strong>Discount Price:</strong>
-                {% if subscriptionPlan.discountPercent and subscriptionPlan.discountPercent > 0 %}
-                    ${{ subscriptionPlan.discountPrice|number_format(2, '.', ',') }}
-                {% else %}
-                    <span class="text-muted">No discount</span>
-                {% endif %}
-            </li>
-            <li class="list-group-item"><strong>Active:</strong>
-                {{ subscriptionPlan.isActive ? 'Yes' : 'No' }}
-            </li>
-            <li class="list-group-item"><strong>Description:</strong>
-                {{ subscriptionPlan.description }}
-            </li>
-        </ul>
+{# ===========================
+   Flash Messages
+   =========================== #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} shadow-sm">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
 
-        <div class="d-grid gap-2">
-            <a href="{{ path('subscription_plan_edit', { id: subscriptionPlan.id }) }}"
-               class="btn fw-semibold"
-               style="
-                    background: linear-gradient(90deg,#ffc107 0%,#fd7e14 100%);
-                    color:#fff;
-                    border:none;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    transition: transform 0.1s, box-shadow 0.2s;
-               "
-               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.15)';"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
-                Edit Plan
-            </a>
+{# ===========================
+   Details Container
+   =========================== #}
+<div class="p-4 rounded-4"
+     style="background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.4);">
 
-            <a href="{{ path('subscription_plan_index') }}"
-               class="btn fw-semibold"
-               style="
-                    background:#ffffff;
-                    color:#6f42c1;
-                    border:2px solid #6f42c1;
-                    border-radius:0.375rem;
-                    transition: all 0.2s;
-               "
-               onmouseover="this.style.background='#6f42c1'; this.style.color='#fff';"
-               onmouseout="this.style.background='#ffffff'; this.style.color='#6f42c1';">
-                Back to Plans List
-            </a>
+    <div class="row g-4">
+
+        {# Price #}
+        <div class="col-md-6">
+            <div class="text-muted small">Price</div>
+
+            {% if subscriptionPlan.discountPercent and subscriptionPlan.discountPercent > 0 %}
+                <div class="text-muted text-decoration-line-through small">
+                    {{ subscriptionPlan.price|number_format(2) }}€
+                </div>
+
+                <div class="fw-bold fs-5 text-danger">
+                    {{ subscriptionPlan.discountPrice|number_format(2) }}€
+                </div>
+            {% else %}
+                <div class="fw-bold fs-5">
+                    {{ subscriptionPlan.price|number_format(2) }}€
+                </div>
+            {% endif %}
+        </div>
+
+        {# Status #}
+        <div class="col-md-6">
+            <div class="text-muted small">Status</div>
+
+            {% if subscriptionPlan.isActive %}
+                <span class="badge bg-success-subtle text-success px-3 py-2">
+                    Active
+                </span>
+            {% else %}
+                <span class="badge bg-secondary-subtle text-muted px-3 py-2">
+                    Disabled
+                </span>
+            {% endif %}
+        </div>
+
+        {# Description #}
+        <div class="col-12">
+            <div class="text-muted small mb-1">Description</div>
+
+            <div class="p-3 rounded-3"
+                 style="background: rgba(0,0,0,0.03);">
+
+                {{ subscriptionPlan.description ?: 'No description provided.' }}
+            </div>
         </div>
 
     </div>
-</div>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
+</div>
+
+{# ===========================
+   Actions
+   =========================== #}
+<div class="mt-4 d-flex flex-column flex-md-row justify-content-between gap-2">
+
+    <a href="{{ path('subscription_plan_index') }}"
+       class="btn btn-outline-secondary">
+        ← Back to Plans
+    </a>
+
+    <a href="{{ path('subscription_plan_edit', { id: subscriptionPlan.id }) }}"
+       class="btn btn-custom">
+        <i class="bi bi-pencil me-1"></i>
+        Edit Plan
+    </a>
+
+</div>
+
 {% endblock %}

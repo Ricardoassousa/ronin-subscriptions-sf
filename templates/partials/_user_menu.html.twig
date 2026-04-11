@@ -1,0 +1,83 @@
+<ul class="dropdown-menu dropdown-menu-end">
+
+    <!-- Subscriptions -->
+    <li>
+        <a class="dropdown-item {{ currentRoute starts with 'subscription_' ? 'active' : '' }}"
+           href="{{ path('subscription_index') }}">
+            <i class="bi bi-card-list me-2"></i> Subscriptions
+        </a>
+    </li>
+
+    <!-- Profile -->
+    <li>
+        <a class="dropdown-item {{ currentRoute == 'app_customer_profile' ? 'active' : '' }}"
+           href="{{ path('app_customer_profile') }}">
+            <i class="bi bi-person me-2"></i> My Profile
+        </a>
+    </li>
+
+    <!-- Settings -->
+    <li>
+        <a class="dropdown-item {{ currentRoute == 'app_profile' ? 'active' : '' }}"
+           href="{{ path('app_profile') }}">
+            <i class="bi bi-gear me-2"></i> Settings
+        </a>
+    </li>
+
+    <!-- Subscription History -->
+    <li>
+        <a class="dropdown-item {{ currentRoute == 'subscriptions_history' ? 'active' : '' }}"
+           href="{{ path('subscriptions_history') }}">
+            <i class="bi bi-clock-history me-2"></i> Subscription History
+        </a>
+    </li>
+
+    <!-- Payments -->
+    <li>
+        <a class="dropdown-item {{ currentRoute == 'payments_history' ? 'active' : '' }}"
+           href="{{ path('payments_history') }}">
+            <i class="bi bi-credit-card me-2"></i> Payments
+        </a>
+    </li>
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <li><hr class="dropdown-divider"></li>
+
+        <!-- Admin: Users -->
+        <li>
+            <a class="dropdown-item {{ currentRoute starts with 'admin_users_' ? 'active' : '' }}"
+               href="{{ path('admin_users_index') }}">
+                <i class="bi bi-people me-2"></i> Users
+            </a>
+        </li>
+
+        <!-- Admin: Plans -->
+        <li>
+            <a class="dropdown-item {{ currentRoute starts with 'subscription_plan_' ? 'active' : '' }}"
+               href="{{ path('subscription_plan_index') }}">
+                <i class="bi bi-tags me-2"></i> Subscription Plans
+            </a>
+        </li>
+
+        <!-- Admin Dashboard -->
+        <li>
+            <a class="dropdown-item {{ currentRoute == 'admin_dashboard' ? 'active' : '' }}"
+               href="{{ path('admin_dashboard') }}">
+                <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+            </a>
+        </li>
+    {% endif %}
+
+    <li><hr class="dropdown-divider"></li>
+
+    <!-- Logout -->
+    <li>
+        <form action="{{ path('app_logout') }}" method="post" class="m-0">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button type="submit" class="dropdown-item text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </button>
+        </form>
+    </li>
+
+</ul>

@@ -50,7 +50,11 @@ class EmailNotificationService
             $this->logger->warning(
                 'Missing user/email for subscription.',
                 [
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return;
@@ -74,7 +78,11 @@ class EmailNotificationService
                 [
                     'subscription' => $subscription->getId(),
                     'user_email' => $subscription->getUser()->getEmail(),
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
         }
@@ -95,7 +103,11 @@ class EmailNotificationService
             $this->logger->warning(
                 'Missing user/email for renewal reminder.',
                 [
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return;
@@ -120,7 +132,11 @@ class EmailNotificationService
                 [
                     'subscription_id' => $subscription->getId(),
                     'user_email' => $user->getEmail(),
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
         }
@@ -143,7 +159,11 @@ class EmailNotificationService
             $this->logger->warning(
                 'Missing user/email for payment failure notification.',
                 [
-                    'subscription_id' => $subscription->getId()
+                    'subscription_id' => $subscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
             return;
@@ -169,7 +189,11 @@ class EmailNotificationService
                 [
                     'subscription_id' => $subscription->getId(),
                     'user_email' => $user->getEmail(),
-                    'exception' => $e->getMessage()
+                    'exception' => $e->getMessage(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
         }

@@ -33,9 +33,16 @@ class PaymentService
     public function process(float $amount): array
     {
         if ($amount <= 0) {
-            $this->logger->warning('Attempted to process invalid payment amount.', [
-                'amount' => $amount
-            ]);
+            $this->logger->warning(
+                'Attempted to process invalid payment amount.',
+                [
+                    'amount' => $amount,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
 
             return [
                 'status' => PaymentStatus::FAILED->value,
@@ -51,7 +58,11 @@ class PaymentService
                 'Payment processed successfully.',
                 [
                     'amount' => $amount,
-                    'transaction_id' => $transactionId
+                    'transaction_id' => $transactionId,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
@@ -64,7 +75,11 @@ class PaymentService
                 'Payment processing failed.',
                 [
                     'amount' => $amount,
-                    'exception' => $e
+                    'exception' => $e,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
                 ]
             );
 
