@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Payment;
 use App\Enum\PaymentStatus;
+use App\Enum\SubscriptionStatus;
 use App\Service\CustomerProfileService;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;
@@ -235,6 +236,12 @@ class PaymentController extends AbstractController
 
                 // Generate invoice if successful
                 if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
+                    $subscription = $payment->getSubscription();
+                    if ($subscription->getStatus() === SubscriptionStatus::PENDING_PAYMENT->value) {
+                        $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+                        $em->flush();
+                    }
+
                     try {
                         $invoice = $invoiceService->generate($payment);
                         $invoiceNumber = $invoice?->getInvoiceNumber();

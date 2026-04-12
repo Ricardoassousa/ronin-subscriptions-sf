@@ -90,9 +90,16 @@ class SubscriptionService
         $subscription->setCurrencySnapshot($subscriptionPlan->getCurrency());
         $subscription->setBillingIntervalSnapshot($subscriptionPlan->getBillingInterval());
         $subscription->setDiscountPercentSnapshot($subscriptionPlan->getDiscountPercent());
-        $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+        $subscription->setStatus(SubscriptionStatus::PENDING_PAYMENT->value);
         $subscription->setStartedAt(new DateTimeImmutable());
-        $subscription->setNextBillingAt(new DateTimeImmutable('+1 month'));
+
+        $now = new DateTimeImmutable();
+        $interval = match (strtolower($subscriptionPlan->getBillingInterval())) {
+            'month' => '1 month',
+            'year' => '1 year',
+            default => '1 month'
+        };
+        $subscription->setNextBillingAt($now->modify("+$interval"));
 
         $this->em->persist($subscription);
         $this->em->flush();
@@ -151,9 +158,16 @@ class SubscriptionService
         $newSubscription->setCurrencySnapshot($newPlan->getCurrency());
         $newSubscription->setBillingIntervalSnapshot($newPlan->getBillingInterval());
         $newSubscription->setDiscountPercentSnapshot($newPlan->getDiscountPercent());
-        $newSubscription->setStatus(SubscriptionStatus::ACTIVE->value);
+        $newSubscription->setStatus(SubscriptionStatus::PENDING_PAYMENT->value);
         $newSubscription->setStartedAt(new DateTimeImmutable());
-        $newSubscription->setNextBillingAt(new DateTimeImmutable('+1 month'));
+
+        $now = new DateTimeImmutable();
+        $interval = match (strtolower($subscriptionPlan->getBillingInterval())) {
+            'month' => '1 month',
+            'year' => '1 year',
+            default => '1 month'
+        };
+        $subscription->setNextBillingAt($now->modify("+$interval"));
 
         $this->em->persist($subscription);
         $this->em->persist($newSubscription);

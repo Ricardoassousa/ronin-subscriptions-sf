@@ -60,7 +60,7 @@ class SubscriptionController extends AbstractController
             ]
         );
 
-        $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user], ['startedAt' => 'DESC']);
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
         $query = $em->getRepository(SubscriptionPlan::class)->findActiveSubscriptionPlans();
 
         $pagination = $paginator->paginate(
@@ -159,7 +159,6 @@ class SubscriptionController extends AbstractController
         // }
 
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
-
         if (!$subscriptionPlan) {
             $logger->error(
                 'Subscription plan not found',
@@ -176,8 +175,44 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_index');
         }
 
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
+        if ($currentSubscription) {
+            $logger->error(
+                'Subscription active already exists',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('warning', 'You already have an active subscription. Please cancel or pause it before subscribing to a new plan.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
         try {
-            $subscription = $subscriptionService->subscribe($user, $subscriptionPlan);
+            $currentPendingSubscription = $em->getRepository(Subscription::class)->findOneBy([
+                'user' => $user,
+                'status' => SubscriptionStatus::PENDING_PAYMENT->value
+            ]);
+            if ($currentPendingSubscription) {
+                $subscription = $currentPendingSubscription;
+                $logger->info(
+                    'Reusing existing pending subscription',
+                    [
+                        'subscription_id' => $subscription->getId(),
+                        'user_id' => $user->getId(),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
+            } else {
+                $subscription = $subscriptionService->subscribe($user, $subscriptionPlan);
+            }
 
             $logger->info(
                 'User subscribed to plan',
@@ -192,15 +227,21 @@ class SubscriptionController extends AbstractController
                 ]
             );
 
-            // After subscription is created
-            $payment = new Payment();
-            $payment->setUser($user);
-            $payment->setSubscription($subscription);
-            $payment->setAmount($subscriptionPlan->getPrice());
-            $payment->setCurrency($subscriptionPlan->getCurrency() ?? 'USD');
-            $payment->setStatus(PaymentStatus::PENDING->value);
-            $em->persist($payment);
-            $em->flush();
+            $payment = $em->getRepository(Payment::class)->findOneBy([
+                'subscription' => $subscription,
+                'status' => PaymentStatus::PENDING->value
+            ]);
+            if (!$payment) {
+                $payment = new Payment();
+                $payment->setUser($user);
+                $payment->setSubscription($subscription);
+                $payment->setAmount($subscriptionPlan->getPrice());
+                $payment->setCurrency($subscriptionPlan->getCurrency() ?? 'USD');
+                $payment->setStatus(PaymentStatus::PENDING->value);
+                $em->persist($payment);
+                $em->flush();
+            }
+
 
             $emailNotificationService->sendSubscriptionConfirmation($subscription);
 
@@ -265,7 +306,6 @@ class SubscriptionController extends AbstractController
         }
 
         $subscription = $em->getRepository(Subscription::class)->find($id);
-
         if (
             !$subscription
             || $subscription->getUser()?->getId() !== $user->getId()
@@ -293,7 +333,6 @@ class SubscriptionController extends AbstractController
         }
 
         $newPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
-
         if (!$newPlan) {
             $logger->error(
                 'Subscription plan not found',
@@ -307,6 +346,23 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription plan not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
+        if ($currentSubscription) {
+            $logger->error(
+                'Subscription active already exists',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('warning', 'You already have an active subscription. Please cancel or pause it before subscribing to a new plan.');
             return $this->redirectToRoute('subscription_index');
         }
 
