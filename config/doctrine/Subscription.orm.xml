@@ -8,7 +8,7 @@
             <generator strategy="AUTO"/>
         </id>
         <field name="priceSnapshot" type="decimal" column="price_snapshot" precision="10" scale="2" nullable="false"/>
-        <field name="currencySnapshot" type="string" column="currency_snapshot" length="3" nullable="true"/>
+        <field name="currencySnapshot" type="string" column="currency_snapshot" length="3" nullable="false"/>
         <field name="billingIntervalSnapshot" type="string" column="billing_interval_snapshot" length="10" nullable="false"/>
         <field name="discountPercentSnapshot" type="decimal" column="discount_percent_snapshot" precision="5" scale="2" nullable="true"/>
         <field name="status" type="string" column="status" length="20" nullable="false"/>

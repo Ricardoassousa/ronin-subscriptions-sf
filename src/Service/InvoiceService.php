@@ -83,7 +83,8 @@ class InvoiceService
         }
 
         $amount = $payment->getAmount();
-        $taxRate = 0.23;
+        $currency = $payment->getCurrency();
+        $taxRate = $this->getTaxRate($currency);
         $invoice = new Invoice();
         $invoice->setPayment($payment);
         $invoice->setInvoiceNumber($this->generateInvoiceNumber());
@@ -95,7 +96,7 @@ class InvoiceService
         ));
         $invoice->setDueDate((new DateTimeImmutable())->modify('+7 days'));
         $invoice->setTax(round($amount * $taxRate, 2));
-        $invoice->setCurrency($payment->getCurrency());
+        $invoice->setCurrency($currency);
 
         try {
             $this->em->persist($invoice);
@@ -145,6 +146,27 @@ class InvoiceService
             (new DateTimeImmutable())->format('Ymd'),
             strtoupper(substr(uniqid(), -6))
         );
+    }
+
+    /**
+     * Returns the tax rate based on the given currency.
+     *
+     * Supported currencies:
+     * - EUR: 23%
+     * - USD: 0%
+     * - GBP: 20%
+     *
+     * @param string $currency
+     * @return float
+     */
+    private function getTaxRate(string $currency): float
+    {
+        return match ($currency) {
+            'EUR' => 0.23,
+            'USD' => 0.0,
+            'GBP' => 0.20,
+            default => 0.0
+        };
     }
 
 }

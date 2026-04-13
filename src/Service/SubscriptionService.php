@@ -93,13 +93,25 @@ class SubscriptionService
         $subscription->setStatus(SubscriptionStatus::PENDING_PAYMENT->value);
         $subscription->setStartedAt(new DateTimeImmutable());
 
+        $trialDays = $subscriptionPlan->getTrialDays() ?? 0;
+        $trialEndsAt = null;
         $now = new DateTimeImmutable();
+        if ($trialDays > 0) {
+            $trialEndsAt = $now->modify("+{$trialDays} days");
+            $subscription->setTrialEndsAt($trialEndsAt);
+        }
+
         $interval = match (strtolower($subscriptionPlan->getBillingInterval())) {
             'month' => '1 month',
             'year' => '1 year',
             default => '1 month'
         };
-        $subscription->setNextBillingAt($now->modify("+$interval"));
+
+        if ($trialEndsAt) {
+            $subscription->setNextBillingAt($trialEndsAt->modify("+$interval"));
+        } else {
+            $subscription->setNextBillingAt($now->modify("+$interval"));
+        }
 
         $this->em->persist($subscription);
         $this->em->flush();
@@ -158,11 +170,11 @@ class SubscriptionService
         $newSubscription->setCurrencySnapshot($newPlan->getCurrency());
         $newSubscription->setBillingIntervalSnapshot($newPlan->getBillingInterval());
         $newSubscription->setDiscountPercentSnapshot($newPlan->getDiscountPercent());
-        $newSubscription->setStatus(SubscriptionStatus::PENDING_PAYMENT->value);
+        $newSubscription->setStatus(SubscriptionStatus::ACTIVE->value);
         $newSubscription->setStartedAt(new DateTimeImmutable());
 
         $now = new DateTimeImmutable();
-        $interval = match (strtolower($subscriptionPlan->getBillingInterval())) {
+        $interval = match (strtolower($newPlan->getBillingInterval())) {
             'month' => '1 month',
             'year' => '1 year',
             default => '1 month'
@@ -232,6 +244,7 @@ class SubscriptionService
         $subscription->setStatus(SubscriptionStatus::CANCELLED->value);
         $subscription->setEndsAt($subscription->getNextBillingAt());
         $subscription->setCancelledAt(new DateTimeImmutable());
+        $subscription->setUpdatedAt(new DateTimeImmutable());
 
         $this->em->flush();
 
@@ -282,6 +295,7 @@ class SubscriptionService
 
         $subscription->setStatus(SubscriptionStatus::PAUSED->value);
         $subscription->setPausedAt(new DateTimeImmutable());
+        $subscription->setUpdatedAt(new DateTimeImmutable());
 
         $this->em->flush();
 
@@ -343,6 +357,7 @@ class SubscriptionService
 
         $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
         $subscription->setPausedAt(null);
+        $subscription->setUpdatedAt(new DateTimeImmutable());
 
         $this->em->flush();
 

@@ -39,13 +39,13 @@
                         <td>
                             {% if subscriptionPlan.discountPercent %}
                                 <span class="text-muted text-decoration-line-through">
-                                    ${{ subscriptionPlan.price | number_format(2, '.', ',') }}
+                                    {{ subscriptionPlan.price | number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
                                 </span>
                                 <span class="text-danger">
-                                    ${{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100)) | number_format(2, '.', ',') }}
+                                    {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100)) | number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
                                 </span>
                             {% else %}
-                                ${{ subscriptionPlan.price | number_format(2, '.', ',') }}
+                                {{ subscriptionPlan.price | number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
                             {% endif %}
                         </td>
                         <td>{{ subscriptionPlan.trialDays ?? 0 }}</td>

@@ -13,6 +13,8 @@ use App\Repository\SubscriptionRepository;
 use App\Service\CustomerProfileService;
 use App\Service\EmailNotificationService;
 use App\Service\SubscriptionService;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
@@ -176,7 +178,7 @@ class SubscriptionController extends AbstractController
         }
 
         $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
-        if ($currentSubscription) {
+        if (!$currentSubscription) {
             $logger->error(
                 'Subscription active already exists',
                 [
@@ -188,7 +190,7 @@ class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('warning', 'You already have an active subscription. Please cancel or pause it before subscribing to a new plan.');
+            $this->addFlash('warning', 'You need to have an active subscription.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -232,11 +234,24 @@ class SubscriptionController extends AbstractController
                 'status' => PaymentStatus::PENDING->value
             ]);
             if (!$payment) {
+                $baseAmount = $subscriptionPlan->getPrice();
+                $discountPercent = $subscriptionPlan->getDiscountPercent();
+
                 $payment = new Payment();
+                $payment->setBaseAmount($baseAmount);
+                $payment->setAmount($baseAmount);
+                if ($discountPercent > 0) {
+                    $discountRate = $discountPercent / 100;
+                    $discountApplied = round($baseAmount * $discountRate, 2);
+                    $finalAmount = $baseAmount - $discountApplied;
+
+                    $payment->setDiscountApplied($discountPercent);
+                    $payment->setAmount($finalAmount);
+                }
+
                 $payment->setUser($user);
                 $payment->setSubscription($subscription);
-                $payment->setAmount($subscriptionPlan->getPrice());
-                $payment->setCurrency($subscriptionPlan->getCurrency() ?? 'USD');
+                $payment->setCurrency($subscriptionPlan->getCurrency());
                 $payment->setStatus(PaymentStatus::PENDING->value);
                 $em->persist($payment);
                 $em->flush();
@@ -245,10 +260,18 @@ class SubscriptionController extends AbstractController
 
             $emailNotificationService->sendSubscriptionConfirmation($subscription);
 
-            $this->addFlash('success', 'You have successfully subscribed!');
-            return $this->redirectToRoute('payment_checkout', [
-                'paymentId' => $payment->getId()
-            ]);
+            if ($subscription->getTrialEndsAt()) {
+                $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+                $em->persist($subscription);
+                $em->flush();
+
+                $this->addFlash('success', 'You have successfully subscribed!');
+                return $this->redirectToRoute('subscription_index');
+            } else {
+                return $this->redirectToRoute('payment_checkout', [
+                    'paymentId' => $payment->getId()
+                ]);
+            }
 
         } catch (Throwable $e) {
             $logger->error(
@@ -350,7 +373,7 @@ class SubscriptionController extends AbstractController
         }
 
         $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
-        if ($currentSubscription) {
+        if (!$currentSubscription) {
             $logger->error(
                 'Subscription active already exists',
                 [
@@ -362,7 +385,47 @@ class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('warning', 'You already have an active subscription. Please cancel or pause it before subscribing to a new plan.');
+            $this->addFlash('warning', 'You need to have an active subscription.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        $now = new DateTimeImmutable();
+        $trialEndsAt = $subscription->getTrialEndsAt();
+        // Check if the trial end date is valid
+        if ($trialEndsAt instanceof DateTimeInterface) {
+            $diff = $now->diff($trialEndsAt);
+
+            // If the trial has expired, prevent changing the plan
+            if ($now > $trialEndsAt) {
+                $logger->error(
+                    'Attempted plan change for expired trial.',
+                    [
+                        'subscription_id' => $currentSubscription->getId(),
+                        'trial_ends_at' => $trialEndsAt->format('Y-m-d H:i:s'),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
+
+                $this->addFlash('warning', 'You cannot change your plan after the trial period has expired.');
+                return $this->redirectToRoute('subscription_index');
+            } 
+        } else {
+            $logger->error(
+                'Invalid trial end date.',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'trial_ends_at' => $trialEndsAt,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('danger', 'The trial period has no valid end date. Please contact support.');
             return $this->redirectToRoute('subscription_index');
         }
 

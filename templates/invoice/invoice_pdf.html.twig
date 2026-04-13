@@ -83,7 +83,7 @@
                 {% if invoice.payment.user.customerProfile is not null %}
                     {{ invoice.payment.user.customerProfile.firstName }} {{ invoice.payment.user.customerProfile.surname }}<br>
                     {{ invoice.payment.user.email }}<br>
-                    {{ invoice.payment.user.customerProfile.primaryAddress }} {{ invoice.payment.user.customerProfile.secondaryAddress }}}<br>
+                    {{ invoice.payment.user.customerProfile.primaryAddress }} {{ invoice.payment.user.customerProfile.secondaryAddress }}<br>
                 {% else %}
                     No customer profile available.<br>
                 {% endif %}
@@ -112,12 +112,12 @@
                 <td>Payment for services</td>
                 <td>{{ invoice.amount|number_format(2, '.', ',') }} {{ invoice.currency }}</td>
             </tr>
-            {% if invoice.tax %}
+            {# {% if invoice.tax %}
             <tr>
                 <td>Tax</td>
-                <td>{{ invoice.tax|number_format(2, '.', ',') }} {{ invoice.currency }}</td>
+                <td>{{ invoice.tax|number_format(2, '.', ',') }} %</td>
             </tr>
-            {% endif %}
+            {% endif %} #}
         </tbody>
     </table>
 

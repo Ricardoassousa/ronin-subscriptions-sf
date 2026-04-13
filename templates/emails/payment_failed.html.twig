@@ -31,7 +31,7 @@
         Amount Due:
         <strong>
             {{ subscription.getCurrentPrice()|number_format(2, '.', ',') }}
-            {{ subscription.currencySnapshot ?? 'USD' }}
+            {{ subscription.currencySnapshot }}
         </strong><br>
 
         Billing Interval:

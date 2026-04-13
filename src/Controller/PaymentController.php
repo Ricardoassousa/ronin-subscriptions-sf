@@ -8,6 +8,7 @@ use App\Enum\SubscriptionStatus;
 use App\Service\CustomerProfileService;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
@@ -232,6 +233,7 @@ class PaymentController extends AbstractController
 
                 $payment->setStatus($result['status']);
                 $payment->setTransactionId($result['transaction_id']);
+                $payment->setUpdatedAt(new DateTimeImmutable());
                 $em->flush();
 
                 // Generate invoice if successful
@@ -239,6 +241,7 @@ class PaymentController extends AbstractController
                     $subscription = $payment->getSubscription();
                     if ($subscription->getStatus() === SubscriptionStatus::PENDING_PAYMENT->value) {
                         $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+                        $subscription->setUpdatedAt(new DateTimeImmutable());
                         $em->flush();
                     }
 

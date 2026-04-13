@@ -197,7 +197,7 @@ class Subscription
      * @param string|null $currencySnapshot
      * @return static
      */
-    public function setCurrencySnapshot(?string $currencySnapshot): static
+    public function setCurrencySnapshot(string $currencySnapshot): static
     {
         $this->currencySnapshot = $currencySnapshot;
         return $this;
