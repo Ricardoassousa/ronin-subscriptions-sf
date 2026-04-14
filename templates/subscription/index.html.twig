@@ -40,7 +40,7 @@
                             {% if subscriptionPlan.discountPercent %}
                                 <span class="text-muted text-decoration-line-through">
                                     {{ subscriptionPlan.price | number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
-                                </span>
+                                </span>&nbsp;
                                 <span class="text-danger">
                                     {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100)) | number_format(2, '.', ',') }} {{ subscriptionPlan.currency }}
                                 </span>
