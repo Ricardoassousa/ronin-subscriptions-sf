@@ -2,7 +2,7 @@
 
     <!-- Subscriptions -->
     <li>
-        <a class="dropdown-item {{ currentRoute starts with 'subscription_' ? 'active' : '' }}"
+        <a class="dropdown-item {{ currentRoute starts with 'subscription_' and currentRoute != 'subscription_plan_index' ? 'active' : '' }}"
            href="{{ path('subscription_index') }}">
             <i class="bi bi-card-list me-2"></i> Subscriptions
         </a>

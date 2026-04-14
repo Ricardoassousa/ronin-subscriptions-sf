@@ -132,7 +132,7 @@ class AdminController extends AbstractController
                 ]
             );
 
-            throw($e);
+            throw $e;
         }
     }
 
@@ -192,7 +192,7 @@ class AdminController extends AbstractController
                 ]
             );
 
-            throw($e);
+            throw $e;
         }
 
         return $this->render('admin/edit_user_roles.html.twig', [

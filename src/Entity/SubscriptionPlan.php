@@ -65,7 +65,7 @@ class SubscriptionPlan
      *
      * @var string|null
      */
-    private ?string $currency = 'EUR';
+    private ?string $currency = 'USD';
 
     /**
      * Billing interval for the plan (month or year).
@@ -282,7 +282,7 @@ class SubscriptionPlan
      * @param string|null $currency
      * @return static
      */
-    public function setCurrency(?string $currency): static
+    public function setCurrency(string $currency): static
     {
         $this->currency = $currency;
 

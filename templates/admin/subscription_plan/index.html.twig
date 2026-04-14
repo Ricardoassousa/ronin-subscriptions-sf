@@ -172,14 +172,14 @@
                 <td>
                     {% if subscriptionPlan.discountPercent %}
                         <div class="text-muted small text-decoration-line-through">
-                            {{ subscriptionPlan.price|number_format(2) }}€
+                            {{ subscriptionPlan.price|number_format(2) }} {{ subscriptionPlan.currency }}
                         </div>
                         <div class="fw-bold text-danger">
-                            {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100))|number_format(2) }}€
+                            {{ (subscriptionPlan.price - (subscriptionPlan.price * subscriptionPlan.discountPercent / 100))|number_format(2) }} {{ subscriptionPlan.currency }}
                         </div>
                     {% else %}
                         <span class="fw-bold">
-                            {{ subscriptionPlan.price|number_format(2) }}€
+                            {{ subscriptionPlan.price|number_format(2) }} {{ subscriptionPlan.currency }}
                         </span>
                     {% endif %}
                 </td>

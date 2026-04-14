@@ -13,6 +13,8 @@ use App\Repository\SubscriptionRepository;
 use App\Service\CustomerProfileService;
 use App\Service\EmailNotificationService;
 use App\Service\SubscriptionService;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
@@ -60,7 +62,7 @@ class SubscriptionController extends AbstractController
             ]
         );
 
-        $currentSubscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user], ['startedAt' => 'DESC']);
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
         $query = $em->getRepository(SubscriptionPlan::class)->findActiveSubscriptionPlans();
 
         $pagination = $paginator->paginate(
@@ -159,7 +161,6 @@ class SubscriptionController extends AbstractController
         // }
 
         $subscriptionPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
-
         if (!$subscriptionPlan) {
             $logger->error(
                 'Subscription plan not found',
@@ -176,8 +177,44 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_index');
         }
 
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
+        if (!$currentSubscription) {
+            $logger->error(
+                'Subscription active already exists',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('warning', 'You need to have an active subscription.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
         try {
-            $subscription = $subscriptionService->subscribe($user, $subscriptionPlan);
+            $currentPendingSubscription = $em->getRepository(Subscription::class)->findOneBy([
+                'user' => $user,
+                'status' => SubscriptionStatus::PENDING_PAYMENT->value
+            ]);
+            if ($currentPendingSubscription) {
+                $subscription = $currentPendingSubscription;
+                $logger->info(
+                    'Reusing existing pending subscription',
+                    [
+                        'subscription_id' => $subscription->getId(),
+                        'user_id' => $user->getId(),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
+            } else {
+                $subscription = $subscriptionService->subscribe($user, $subscriptionPlan);
+            }
 
             $logger->info(
                 'User subscribed to plan',
@@ -192,22 +229,49 @@ class SubscriptionController extends AbstractController
                 ]
             );
 
-            // After subscription is created
-            $payment = new Payment();
-            $payment->setUser($user);
-            $payment->setSubscription($subscription);
-            $payment->setAmount($subscriptionPlan->getPrice());
-            $payment->setCurrency($subscriptionPlan->getCurrency() ?? 'USD');
-            $payment->setStatus(PaymentStatus::PENDING->value);
-            $em->persist($payment);
-            $em->flush();
+            $payment = $em->getRepository(Payment::class)->findOneBy([
+                'subscription' => $subscription,
+                'status' => PaymentStatus::PENDING->value
+            ]);
+            if (!$payment) {
+                $baseAmount = $subscriptionPlan->getPrice();
+                $discountPercent = $subscriptionPlan->getDiscountPercent();
+
+                $payment = new Payment();
+                $payment->setBaseAmount($baseAmount);
+                $payment->setAmount($baseAmount);
+                if ($discountPercent > 0) {
+                    $discountRate = $discountPercent / 100;
+                    $discountApplied = round($baseAmount * $discountRate, 2);
+                    $finalAmount = $baseAmount - $discountApplied;
+
+                    $payment->setDiscountApplied($discountPercent);
+                    $payment->setAmount($finalAmount);
+                }
+
+                $payment->setUser($user);
+                $payment->setSubscription($subscription);
+                $payment->setCurrency($subscriptionPlan->getCurrency());
+                $payment->setStatus(PaymentStatus::PENDING->value);
+                $em->persist($payment);
+                $em->flush();
+            }
+
 
             $emailNotificationService->sendSubscriptionConfirmation($subscription);
 
-            $this->addFlash('success', 'You have successfully subscribed!');
-            return $this->redirectToRoute('payment_checkout', [
-                'paymentId' => $payment->getId()
-            ]);
+            if ($subscription->getTrialEndsAt()) {
+                $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+                $em->persist($subscription);
+                $em->flush();
+
+                $this->addFlash('success', 'You have successfully subscribed!');
+                return $this->redirectToRoute('subscription_index');
+            } else {
+                return $this->redirectToRoute('payment_checkout', [
+                    'paymentId' => $payment->getId()
+                ]);
+            }
 
         } catch (Throwable $e) {
             $logger->error(
@@ -265,7 +329,6 @@ class SubscriptionController extends AbstractController
         }
 
         $subscription = $em->getRepository(Subscription::class)->find($id);
-
         if (
             !$subscription
             || $subscription->getUser()?->getId() !== $user->getId()
@@ -293,7 +356,6 @@ class SubscriptionController extends AbstractController
         }
 
         $newPlan = $em->getRepository(SubscriptionPlan::class)->find($planId);
-
         if (!$newPlan) {
             $logger->error(
                 'Subscription plan not found',
@@ -307,6 +369,63 @@ class SubscriptionController extends AbstractController
             );
 
             $this->addFlash('danger', 'Subscription plan not found.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
+        if (!$currentSubscription) {
+            $logger->error(
+                'Subscription active already exists',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('warning', 'You need to have an active subscription.');
+            return $this->redirectToRoute('subscription_index');
+        }
+
+        $now = new DateTimeImmutable();
+        $trialEndsAt = $subscription->getTrialEndsAt();
+        // Check if the trial end date is valid
+        if ($trialEndsAt instanceof DateTimeInterface) {
+            $diff = $now->diff($trialEndsAt);
+
+            // If the trial has expired, prevent changing the plan
+            if ($now > $trialEndsAt) {
+                $logger->error(
+                    'Attempted plan change for expired trial.',
+                    [
+                        'subscription_id' => $currentSubscription->getId(),
+                        'trial_ends_at' => $trialEndsAt->format('Y-m-d H:i:s'),
+                        'source' => [
+                            'method' => __METHOD__,
+                            'line' => __LINE__
+                        ]
+                    ]
+                );
+
+                $this->addFlash('warning', 'You cannot change your plan after the trial period has expired.');
+                return $this->redirectToRoute('subscription_index');
+            } 
+        } else {
+            $logger->error(
+                'Invalid trial end date.',
+                [
+                    'subscription_id' => $currentSubscription->getId(),
+                    'trial_ends_at' => $trialEndsAt,
+                    'source' => [
+                        'method' => __METHOD__,
+                        'line' => __LINE__
+                    ]
+                ]
+            );
+
+            $this->addFlash('danger', 'The trial period has no valid end date. Please contact support.');
             return $this->redirectToRoute('subscription_index');
         }
 

@@ -9,6 +9,8 @@ namespace App\Enum;
  * - CANCELLED: The subscription has been cancelled by the user or admin.
  * - EXPIRED: The subscription period has ended without renewal.
  * - PAUSED: The subscription is temporarily suspended (paused).
+ * - PAST_DUE: Payment failed, but the subscription is still recoverable.
+ * - PENDING_PAYMENT: Payment is pending; subscription not yet active.
  *
  * This enum is used in the Subscription entity to track lifecycle state.
  */
@@ -38,6 +40,11 @@ enum SubscriptionStatus: string
      * Payment failed, but the subscription is still recoverable.
      */
     case PAST_DUE = 'past_due';
+
+    /**
+     * Payment is pending; subscription not yet active.
+     */
+    case PENDING_PAYMENT = 'pending';
 
     /**
      * Check if the subscription is currently active.
@@ -85,6 +92,14 @@ enum SubscriptionStatus: string
     public function isPastDue(): bool
     {
         return $this === self::PAST_DUE;
+    }
+
+    /**
+     * Check if the subscription is pending payment.
+     */
+    public function isPendingPayment(): bool
+    {
+        return $this === self::PENDING_PAYMENT;
     }
 
 }

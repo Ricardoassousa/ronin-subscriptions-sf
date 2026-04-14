@@ -86,4 +86,32 @@ class SubscriptionRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * Finds the current subscription for a given user.
+     *
+     * This method returns the most recent subscription of the user
+     * that is still valid according to business rules (ACTIVE, PAUSED, PAST_DUE).
+     *
+     * @param User $user
+     * @return Subscription|null
+     */
+    public function findCurrentSubscriptionByUser(User $user): ?Subscription
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('subscription')
+            ->from(Subscription::class, 'subscription')
+            ->where('subscription.user = :user')
+            ->andWhere('subscription.status IN (:statuses)')
+            ->setParameter('user', $user)
+            ->setParameter('statuses', [
+                SubscriptionStatus::ACTIVE->value,
+                SubscriptionStatus::PAUSED->value,
+                SubscriptionStatus::PAST_DUE->value,
+            ])
+            ->orderBy('subscription.startedAt', 'DESC')
+            ->setMaxResults(1);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
 }
