@@ -58,29 +58,22 @@
                             {% endif %}
                         </td>
                         <td>
-                            {# Actions for subscription plans #}
                             <div class="d-flex gap-2 justify-content-center">
-                                {% if not currentSubscription %}
-                                    {# If no current subscription, show Subscribe button #}
+                                {% if currentSubscription and currentSubscription.subscriptionPlan.id == subscriptionPlan.id %}
+                                    {# Always show Current Plan for the subscribed plan #}
+                                    <button class="btn btn-secondary btn-sm" disabled>Current Plan</button>
+                                {% elseif not currentSubscription %}
+                                    {# No subscription yet, show Subscribe button #}
                                     <form action="{{ path('subscription_subscribe', { planId: subscriptionPlan.id }) }}" method="post">
                                         <input type="hidden" name="_token" value="{{ csrf_token('subscribe' ~ subscriptionPlan.id) }}">
                                         <button class="btn btn-outline-primary btn-sm">Subscribe</button>
                                     </form>
-                                {% elseif currentSubscription.status != 'active' %}
-                                    {# If current subscription is not active, show Change Plan button #}
-                                    <form action="{{ path('subscription_change_plan', { id: currentSubscription.id, planId: subscriptionPlan.id }) }}" method="post">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('change_plan' ~ currentSubscription.id) }}">
-                                        <button class="btn btn-outline-primary btn-sm">Change Plan</button>
-                                    </form>
-                                {% elseif currentSubscription.subscriptionPlan.id != subscriptionPlan.id %}
-                                    {# If active subscription and different plan, show Change Plan button #}
-                                    <form action="{{ path('subscription_change_plan', { id: currentSubscription.id, planId: subscriptionPlan.id }) }}" method="post">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('change_plan' ~ currentSubscription.id) }}">
-                                        <button class="btn btn-outline-primary btn-sm">Change Plan</button>
-                                    </form>
                                 {% else %}
-                                    {# If the current subscription is active and it's the same plan, show Current Plan button #}
-                                    <button class="btn btn-secondary btn-sm" disabled>Current Plan</button>
+                                    {# User has a different subscription, show Change Plan button #}
+                                    <form action="{{ path('subscription_change_plan', { id: currentSubscription.id, planId: subscriptionPlan.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('change_plan' ~ currentSubscription.id) }}">
+                                        <button class="btn btn-outline-primary btn-sm">Change Plan</button>
+                                    </form>
                                 {% endif %}
                             </div>
                         </td>
@@ -147,7 +140,6 @@
                                     </form>
                                 </div>
                             {% endif %}
-
                         </div>
                     </div>
                 </div>
