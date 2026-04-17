@@ -178,7 +178,7 @@ class SubscriptionController extends AbstractController
         }
 
         $currentSubscription = $em->getRepository(Subscription::class)->findCurrentSubscriptionByUser($user);
-        if (!$currentSubscription) {
+        if ($currentSubscription) {
             $logger->error(
                 'Subscription active already exists',
                 [
@@ -190,7 +190,7 @@ class SubscriptionController extends AbstractController
                 ]
             );
 
-            $this->addFlash('warning', 'You need to have an active subscription.');
+            $this->addFlash('warning', 'You already have an active subscription.');
             return $this->redirectToRoute('subscription_index');
         }
 
@@ -377,7 +377,7 @@ class SubscriptionController extends AbstractController
             $logger->error(
                 'Subscription active already exists',
                 [
-                    'subscription_id' => $currentSubscription->getId(),
+                    'plan_id' => $planId,
                     'source' => [
                         'method' => __METHOD__,
                         'line' => __LINE__
