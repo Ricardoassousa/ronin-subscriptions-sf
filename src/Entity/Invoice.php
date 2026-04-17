@@ -208,7 +208,7 @@ class Invoice
      * @param string|null $currency
      * @return static
      */
-    public function setCurrency(?string $currency): static
+    public function setCurrency(string $currency): static
     {
         $this->currency = $currency;
         return $this;

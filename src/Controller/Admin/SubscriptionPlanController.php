@@ -124,7 +124,8 @@ class SubscriptionPlanController extends AbstractController
                     ]
                 ]
             );
-            $this->addFlash('danger', 'An error occurred while loading the subscription plans list.');
+
+            throw $e;
         }
 
     }

@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Range;
 
 class SubscriptionPlanType extends AbstractType
 {
@@ -37,10 +38,16 @@ class SubscriptionPlanType extends AbstractType
                 'label' => 'Price',
                 'scale' => 2
             ])
-            ->add('discountPercent', NumberType::class, [
+            ->add('discountPercent', IntegerType::class, [
                 'label' => 'Discount (%)',
-                'scale' => 2,
-                'required' => false
+                'required' => false,
+                'constraints' => [
+                    new Range([
+                        'min' => 1,
+                        'max' => 99,
+                        'notInRangeMessage' => 'Discount percent must be between {{ min }} and {{ max }}.',
+                    ])
+                ]
             ])
             ->add('currency', ChoiceType::class, [
                 'label' => 'Currency',
@@ -49,7 +56,7 @@ class SubscriptionPlanType extends AbstractType
                     'USD' => 'USD',
                     'GBP' => 'GBP'
                 ],
-                'required' => false
+                'required' => true
             ])
             ->add('billingInterval', ChoiceType::class, [
                 'label' => 'Billing Interval',

@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Payment;
 use App\Enum\PaymentStatus;
+use App\Enum\SubscriptionStatus;
 use App\Service\CustomerProfileService;
 use App\Service\InvoiceService;
 use App\Service\PaymentService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
@@ -231,10 +233,18 @@ class PaymentController extends AbstractController
 
                 $payment->setStatus($result['status']);
                 $payment->setTransactionId($result['transaction_id']);
+                $payment->setUpdatedAt(new DateTimeImmutable());
                 $em->flush();
 
                 // Generate invoice if successful
                 if ($payment->getStatus() === PaymentStatus::SUCCESS->value) {
+                    $subscription = $payment->getSubscription();
+                    if ($subscription->getStatus() === SubscriptionStatus::PENDING_PAYMENT->value) {
+                        $subscription->setStatus(SubscriptionStatus::ACTIVE->value);
+                        $subscription->setUpdatedAt(new DateTimeImmutable());
+                        $em->flush();
+                    }
+
                     try {
                         $invoice = $invoiceService->generate($payment);
                         $invoiceNumber = $invoice?->getInvoiceNumber();
